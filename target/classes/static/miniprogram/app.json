@@ -1,0 +1,33 @@
+{
+  "pages": [
+    "pages/index/index",
+    "pages/detail/index",
+    "pages/discover/index"
+  ],
+  "window": {
+    "backgroundTextStyle": "light",
+    "navigationBarBackgroundColor": "#F5F3F0",
+    "navigationBarTitleText": "听雨眠舟",
+    "navigationBarTextStyle": "black",
+    "backgroundColor": "#F5F3F0"
+  },
+  "tabBar": {
+    "color": "#7A8A7F",
+    "selectedColor": "#3A4A3F",
+    "backgroundColor": "#FFFFFF",
+    "borderStyle": "black",
+    "list": [
+      {
+        "pagePath": "pages/index/index",
+        "text": "首页"
+      },
+      {
+        "pagePath": "pages/discover/index",
+        "text": "发现"
+      }
+    ]
+  },
+  "style": "v2",
+  "sitemapLocation": "sitemap.json",
+  "cloud": true
+}
