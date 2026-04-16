@@ -62,25 +62,15 @@ public class PoemCrawlerService {
      */
     public int importTangPoems(int limit) {
         int imported = 0;
-        // 唐诗文件列表（选取知名诗人的文件）
-        String[] files = {
-            "全唐诗/poet.tang.0.json",
-            "全唐诗/poet.tang.1000.json",
-            "全唐诗/poet.tang.2000.json",
-            "全唐诗/poet.tang.3000.json",
-            "全唐诗/poet.tang.4000.json",
-            "全唐诗/poet.tang.5000.json",
-            "全唐诗/poet.tang.6000.json",
-            "全唐诗/poet.tang.7000.json",
-            "全唐诗/poet.tang.8000.json"
-        };
-
-        for (String file : files) {
-            if (imported >= limit) break;
+        // 唐诗文件：全唐诗共 poet.tang.0 ~ poet.tang.57000，每文件1000首
+        for (int i = 0; i <= 57000 && imported < limit; i += 1000) {
+            String file = "全唐诗/poet.tang." + i + ".json";
             try {
                 int count = importFromFile(file, "唐", limit - imported);
                 imported += count;
-                System.out.println("已从 " + file + " 导入 " + count + " 首唐诗");
+                if (count > 0) {
+                    System.out.println("已从 " + file + " 导入 " + count + " 首唐诗");
+                }
             } catch (Exception e) {
                 System.err.println("导入 " + file + " 失败: " + e.getMessage());
             }
@@ -93,20 +83,20 @@ public class PoemCrawlerService {
      */
     public int importSongPoems(int limit) {
         int imported = 0;
-        String[] files = {
-            "全唐诗/poet.song.0.json",
-            "全唐诗/poet.song.1000.json",
-            "全唐诗/poet.song.2000.json"
-        };
-
-        for (String file : files) {
-            if (imported >= limit) break;
+        // 宋诗文件：poet.song.0 ~ poet.song.254000
+        for (int i = 0; i <= 254000 && imported < limit; i += 1000) {
+            String file = "全唐诗/poet.song." + i + ".json";
             try {
                 int count = importFromFile(file, "宋", limit - imported);
                 imported += count;
-                System.out.println("已从 " + file + " 导入 " + count + " 首宋诗");
+                if (count > 0) {
+                    System.out.println("已从 " + file + " 导入 " + count + " 首宋诗");
+                }
             } catch (Exception e) {
-                System.err.println("导入 " + file + " 失败: " + e.getMessage());
+                // 文件不存在时静默跳过（404）
+                if (!e.getMessage().contains("404")) {
+                    System.err.println("导入 " + file + " 失败: " + e.getMessage());
+                }
             }
         }
         return imported;
@@ -117,19 +107,19 @@ public class PoemCrawlerService {
      */
     public int importSongCi(int limit) {
         int imported = 0;
-        String[] files = {
-            "宋词/ci.song.0.json",
-            "宋词/ci.song.1000.json"
-        };
-
-        for (String file : files) {
-            if (imported >= limit) break;
+        // 宋词文件：ci.song.0 ~ ci.song.21000
+        for (int i = 0; i <= 21000 && imported < limit; i += 1000) {
+            String file = "宋词/ci.song." + i + ".json";
             try {
                 int count = importCiFromFile(file, limit - imported);
                 imported += count;
-                System.out.println("已从 " + file + " 导入 " + count + " 首宋词");
+                if (count > 0) {
+                    System.out.println("已从 " + file + " 导入 " + count + " 首宋词");
+                }
             } catch (Exception e) {
-                System.err.println("导入 " + file + " 失败: " + e.getMessage());
+                if (!e.getMessage().contains("404")) {
+                    System.err.println("导入 " + file + " 失败: " + e.getMessage());
+                }
             }
         }
         return imported;
@@ -282,8 +272,8 @@ public class PoemCrawlerService {
     public int importAuthors(int limit) {
         int imported = 0;
         String[][] sources = {
-            {"authors.tang.json", "唐"},
-            {"authors.song.json", "宋"}
+            {"全唐诗/authors.tang.json", "唐"},
+            {"全唐诗/authors.song.json", "宋"}
         };
 
         for (String[] source : sources) {
@@ -485,12 +475,12 @@ public class PoemCrawlerService {
     public void onStartupImport() {
         System.out.println("===== 启动时异步诗词导入任务开始 =====");
         try {
-            int limitPerSource = 50;
+            int limitPerSource = 500;
             int tang = importTangPoems(limitPerSource);
             int song = importSongPoems(limitPerSource);
             int songci = importSongCi(limitPerSource);
-            int authors = importAuthors(200);
-            int enriched = importEnrichedPoems(200);
+            int authors = importAuthors(500);
+            int enriched = importEnrichedPoems(2000);
             System.out.println("===== 启动导入完成: 唐诗=" + tang + " 宋诗=" + song
                 + " 宋词=" + songci + " 作者=" + authors + " 富化=" + enriched + " =====");
         } catch (Exception e) {
@@ -506,12 +496,12 @@ public class PoemCrawlerService {
     public void scheduledImport() {
         System.out.println("===== 定时诗词导入任务开始 =====");
         try {
-            int limitPerSource = 50;
+            int limitPerSource = 500;
             int tang = importTangPoems(limitPerSource);
             int song = importSongPoems(limitPerSource);
             int songci = importSongCi(limitPerSource);
-            int authors = importAuthors(200);
-            int enriched = importEnrichedPoems(500);
+            int authors = importAuthors(500);
+            int enriched = importEnrichedPoems(5000);
             System.out.println("===== 定时导入完成: 唐诗=" + tang + " 宋诗=" + song
                 + " 宋词=" + songci + " 作者=" + authors + " 富化=" + enriched + " =====");
         } catch (Exception e) {
