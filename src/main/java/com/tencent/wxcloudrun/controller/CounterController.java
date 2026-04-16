@@ -33,6 +33,16 @@ public class CounterController {
 
 
   /**
+   * 健康检查端点
+   * @return API response json
+   */
+  @GetMapping(value = "/api/health")
+  ApiResponse health() {
+    logger.info("/api/health check");
+    return ApiResponse.ok("ok");
+  }
+
+  /**
    * 获取当前计数
    * @return API response json
    */
