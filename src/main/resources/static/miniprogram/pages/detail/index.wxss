@@ -1,0 +1,228 @@
+/* pages/detail/index.wxss */
+
+.detail-page {
+  min-height: 100vh;
+  background: #FDF8F0;
+  padding-bottom: 140rpx;
+  transition: background 0.3s ease;
+}
+
+/* 沉浸模式 */
+.detail-page.immersive {
+  background: #F5F3F0;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+}
+
+/* 诗词正文区 */
+.poem-section {
+  padding: 80rpx 48rpx 40rpx;
+  text-align: center;
+}
+.detail-page.immersive .poem-section {
+  padding: 120rpx 48rpx;
+}
+
+.poem-title {
+  display: block;
+  font-size: 52rpx;
+  font-weight: 600;
+  color: #3A4A3F;
+  letter-spacing: 6rpx;
+  margin-bottom: 20rpx;
+}
+
+.poem-meta {
+  display: block;
+  font-size: 28rpx;
+  color: #7A8A7F;
+  margin-bottom: 48rpx;
+  letter-spacing: 2rpx;
+}
+
+.poem-body {
+  margin-top: 40rpx;
+}
+
+.poem-line {
+  display: block;
+  font-size: 38rpx;
+  color: #3A4A3F;
+  line-height: 2.2;
+  letter-spacing: 4rpx;
+}
+
+/* 标签条 */
+.tags-section {
+  padding: 24rpx 48rpx;
+}
+.tags-scroll {
+  white-space: nowrap;
+}
+.tags-inner {
+  display: inline-flex;
+  gap: 12rpx;
+}
+.tag-capsule:active {
+  opacity: 0.6;
+}
+
+/* 作者介绍 */
+.author-section {
+  margin: 0 48rpx 16rpx;
+  background: #FFFFFF;
+  border-radius: 20rpx;
+  padding: 28rpx 32rpx;
+  box-shadow: 0 4rpx 20rpx rgba(58, 74, 63, 0.06);
+}
+.author-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+.author-name {
+  font-size: 28rpx;
+  color: #3A4A3F;
+  font-weight: 500;
+}
+.author-arrow {
+  font-size: 24rpx;
+  color: #D4B896;
+}
+.author-bio {
+  max-height: 0;
+  overflow: hidden;
+  transition: max-height 0.3s ease;
+}
+.author-bio.expanded {
+  max-height: 600rpx;
+  overflow-y: auto;
+}
+.author-bio-text {
+  display: block;
+  font-size: 26rpx;
+  color: #5A6A5F;
+  line-height: 1.8;
+  margin-top: 20rpx;
+  padding-top: 20rpx;
+  border-top: 1rpx solid #E8E4DF;
+}
+
+/* Tab切换条 */
+.tab-section {
+  padding: 0 32rpx 24rpx;
+}
+
+.tab-bar {
+  display: flex;
+  border-bottom: 2rpx solid #E8E4DF;
+  margin-bottom: 0;
+}
+
+.tab-item {
+  flex: 1;
+  text-align: center;
+  padding: 20rpx 0;
+  font-size: 28rpx;
+  color: #9AA59F;
+  position: relative;
+  transition: color 0.2s ease;
+}
+
+.tab-item.active {
+  color: #3A4A3F;
+  font-weight: 500;
+}
+
+.tab-item.active::after {
+  content: '';
+  position: absolute;
+  bottom: -2rpx;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 48rpx;
+  height: 4rpx;
+  background: #D4B896;
+  border-radius: 2rpx;
+}
+
+/* Tab内容 */
+.tab-content {
+  margin: 24rpx 0;
+}
+
+.tab-panel {
+  background: #FFFFFF;
+  border-radius: 24rpx;
+  padding: 40rpx;
+  box-shadow: 0 4rpx 20rpx rgba(58, 74, 63, 0.06);
+}
+
+.tab-text {
+  font-size: 30rpx;
+  color: #5A6A5F;
+  line-height: 1.8;
+  letter-spacing: 1rpx;
+}
+
+/* 底部操作栏 */
+.bottom-bar {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  display: flex;
+  padding: 20rpx 32rpx;
+  padding-bottom: calc(20rpx + env(safe-area-inset-bottom));
+  background: rgba(253, 248, 240, 0.95);
+  backdrop-filter: blur(10px);
+  gap: 24rpx;
+}
+
+.bottom-btn {
+  flex: 1;
+  text-align: center;
+  padding: 22rpx 0;
+  border-radius: 40rpx;
+  background: #3A4A3F;
+}
+
+.bottom-btn .btn-label {
+  font-size: 28rpx;
+  color: #FDF8F0;
+}
+
+.share-btn {
+  background: #FFFFFF !important;
+  border: 2rpx solid #E8E4DF;
+  line-height: normal;
+  margin: 0;
+}
+.share-btn::after {
+  border: none;
+}
+
+.share-btn .btn-label {
+  color: #3A4A3F !important;
+}
+
+/* 沉浸模式退出提示 */
+.immersive-hint {
+  position: fixed;
+  bottom: 80rpx;
+  left: 0;
+  right: 0;
+  text-align: center;
+  animation: fadeInHint 1s ease 1s both;
+}
+
+.immersive-hint text {
+  font-size: 24rpx;
+  color: #9AA59F;
+}
+
+@keyframes fadeInHint {
+  from { opacity: 0; }
+  to { opacity: 0.6; }
+}

@@ -2,7 +2,8 @@
   "pages": [
     "pages/index/index",
     "pages/detail/index",
-    "pages/discover/index"
+    "pages/discover/index",
+    "pages/share/index"
   ],
   "window": {
     "backgroundTextStyle": "light",
@@ -19,11 +20,15 @@
     "list": [
       {
         "pagePath": "pages/index/index",
-        "text": "首页"
+        "text": "首页",
+        "iconPath": "images/home_normal.png",
+        "selectedIconPath": "images/home_selected.png"
       },
       {
         "pagePath": "pages/discover/index",
-        "text": "发现"
+        "text": "发现",
+        "iconPath": "images/discover_normal.png",
+        "selectedIconPath": "images/discover_selected.png"
       }
     ]
   },

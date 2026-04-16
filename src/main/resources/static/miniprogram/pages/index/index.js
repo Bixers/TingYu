@@ -1,7 +1,12 @@
+// pages/index/index.js
+const api = require('../../utils/api')
+
 Page({
   data: {
     currentPoem: null,
-    loading: false
+    contentLines: [],
+    loading: false,
+    animating: false
   },
 
   onLoad() {
@@ -18,53 +23,33 @@ Page({
   // 加载每日诗词
   loadDailyPoem() {
     this.setData({ loading: true })
-    
-    const serviceName = getApp().globalData.serviceName
-    wx.cloud.callContainer({
-      path: '/api/poems/daily',
-      method: 'GET',
-      header: {
-        'X-WX-SERVICE': serviceName
-      },
-      success: (res) => {
-        if (res.statusCode === 200 && res.data && res.data.code === 200) {
-          this.setData({ currentPoem: res.data.data })
-        } else {
-          wx.showToast({ title: (res.data && res.data.message) || '加载失败', icon: 'none' })
-        }
-      },
-      fail: (error) => {
-        console.error('加载失败:', error)
-        wx.showToast({ title: '加载失败', icon: 'none' })
-      },
-      complete: () => {
-        this.setData({ loading: false })
-      }
+
+    api.getDailyPoem().then(poem => {
+      const contentLines = api.parseContent(poem.content)
+      this.setData({ currentPoem: poem, contentLines, animating: true })
+      setTimeout(() => this.setData({ animating: false }), 500)
+    }).catch(err => {
+      console.error('加载失败:', err)
+      wx.showToast({ title: '加载失败', icon: 'none' })
+    }).finally(() => {
+      this.setData({ loading: false })
     })
   },
 
   // 加载随机诗词
   loadRandomPoem() {
+    if (this.data.loading) return
     this.setData({ loading: true })
-    
-    const serviceName = getApp().globalData.serviceName
-    wx.cloud.callContainer({
-      path: '/api/poems/random',
-      method: 'GET',
-      header: {
-        'X-WX-SERVICE': serviceName
-      },
-      success: (res) => {
-        if (res.statusCode === 200 && res.data && res.data.code === 200) {
-          this.setData({ currentPoem: res.data.data })
-        }
-      },
-      fail: () => {
-        wx.showToast({ title: '加载失败', icon: 'none' })
-      },
-      complete: () => {
-        this.setData({ loading: false })
-      }
+
+    api.getRandomPoem().then(poem => {
+      const contentLines = api.parseContent(poem.content)
+      this.setData({ currentPoem: poem, contentLines, animating: true })
+      setTimeout(() => this.setData({ animating: false }), 500)
+    }).catch(err => {
+      console.error('加载失败:', err)
+      wx.showToast({ title: '加载失败', icon: 'none' })
+    }).finally(() => {
+      this.setData({ loading: false })
     })
   },
 
@@ -79,14 +64,10 @@ Page({
     wx.switchTab({ url: '/pages/discover/index' })
   },
 
-  parseContent(content) {
-    if (!content) return []
-    try {
-      return JSON.parse(content)
-    } catch {
-      return content.split('，').map((line, index, arr) => 
-        index === arr.length - 1 ? line : line + '，'
-      )
+  goToShare() {
+    const { currentPoem } = this.data
+    if (currentPoem) {
+      wx.navigateTo({ url: `/pages/share/index?id=${currentPoem.id}` })
     }
   },
 

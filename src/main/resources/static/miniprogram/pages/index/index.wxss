@@ -97,11 +97,6 @@
   opacity: 0.8;
 }
 
-.button-icon {
-  font-size: 48rpx;
-  margin-bottom: 16rpx;
-}
-
 .button-text {
   font-size: 26rpx;
   color: #3A4A3F;

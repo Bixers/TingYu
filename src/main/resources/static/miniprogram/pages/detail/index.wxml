@@ -1,2 +1,89 @@
-<!--pages/detail/index.wxml-->
-<text>pages/detail/index.wxml</text>
+<!-- pages/detail/index.wxml -->
+<view class="detail-page {{immersiveMode ? 'immersive' : ''}}">
+
+  <!-- 加载状态 -->
+  <view class="loading" wx:if="{{loading}}">
+    <text>加载中...</text>
+  </view>
+
+  <!-- 诗词正文区 -->
+  <view class="poem-section fade-in" wx:if="{{poem}}" bindtap="toggleImmersive">
+    <text class="poem-title">{{poem.title}}</text>
+    <text class="poem-meta">{{poem.dynasty}} · {{poem.author}}</text>
+    <view class="poem-body">
+      <block wx:for="{{contentLines}}" wx:key="index">
+        <text class="poem-line">{{item}}</text>
+      </block>
+    </view>
+  </view>
+
+  <!-- 作者介绍 -->
+  <view class="author-section" wx:if="{{authorInfo && authorInfo.description && !immersiveMode}}" catchtap="toggleAuthorBio">
+    <view class="author-header">
+      <text class="author-name">{{authorInfo.name}}</text>
+      <text class="author-arrow">{{showAuthorBio ? '收起' : '作者介绍'}}</text>
+    </view>
+    <view class="author-bio {{showAuthorBio ? 'expanded' : ''}}">
+      <text class="author-bio-text">{{authorInfo.description}}</text>
+    </view>
+  </view>
+
+  <!-- 标签条 -->
+  <view class="tags-section" wx:if="{{tagsList.length > 0 && !immersiveMode}}">
+    <scroll-view scroll-x class="tags-scroll">
+      <view class="tags-inner">
+        <text class="tag-capsule" wx:for="{{tagsList}}" wx:key="index"
+              bindtap="onTagTap" data-tag="{{item}}">{{item}}</text>
+      </view>
+    </scroll-view>
+  </view>
+
+  <!-- Tab 切换条 -->
+  <view class="tab-section" wx:if="{{poem && !immersiveMode && (poem.annotation || poem.appreciation || poem.translation)}}">
+    <view class="tab-bar">
+      <view class="tab-item {{activeTab === 'annotation' ? 'active' : ''}}"
+            bindtap="switchTab" data-tab="annotation"
+            wx:if="{{poem.annotation}}">
+        <text>注释</text>
+      </view>
+      <view class="tab-item {{activeTab === 'appreciation' ? 'active' : ''}}"
+            bindtap="switchTab" data-tab="appreciation"
+            wx:if="{{poem.appreciation}}">
+        <text>赏析</text>
+      </view>
+      <view class="tab-item {{activeTab === 'translation' ? 'active' : ''}}"
+            bindtap="switchTab" data-tab="translation"
+            wx:if="{{poem.translation}}">
+        <text>译文</text>
+      </view>
+    </view>
+
+    <!-- Tab 内容 -->
+    <view class="tab-content">
+      <view class="tab-panel" wx:if="{{activeTab === 'annotation' && poem.annotation}}">
+        <text class="tab-text">{{poem.annotation}}</text>
+      </view>
+      <view class="tab-panel" wx:if="{{activeTab === 'appreciation' && poem.appreciation}}">
+        <text class="tab-text">{{poem.appreciation}}</text>
+      </view>
+      <view class="tab-panel" wx:if="{{activeTab === 'translation' && poem.translation}}">
+        <text class="tab-text">{{poem.translation}}</text>
+      </view>
+    </view>
+  </view>
+
+  <!-- 底部操作栏 -->
+  <view class="bottom-bar" wx:if="{{poem && !immersiveMode}}">
+    <view class="bottom-btn" bindtap="goToShare">
+      <text class="btn-label">生成卡片</text>
+    </view>
+    <button class="bottom-btn share-btn" open-type="share">
+      <text class="btn-label">分享好友</text>
+    </button>
+  </view>
+
+  <!-- 沉浸模式退出提示 -->
+  <view class="immersive-hint" wx:if="{{immersiveMode}}">
+    <text>点击任意处退出沉浸模式</text>
+  </view>
+</view>

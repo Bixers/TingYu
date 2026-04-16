@@ -14,6 +14,8 @@ App({
   globalData: {
     userInfo: null,
     // 云托管服务名称
-    serviceName: 'springboot-84kb'
+    serviceName: 'springboot-84kb',
+    // 标签跳转中转
+    pendingTag: ''
   }
 })

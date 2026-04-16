@@ -1,0 +1,42 @@
+<!-- pages/share/index.wxml -->
+<view class="share-page">
+
+  <!-- Canvas 预览区 -->
+  <view class="canvas-container">
+    <view class="canvas-wrap">
+      <canvas type="2d" id="shareCanvas" class="share-canvas"></canvas>
+    </view>
+    <view class="canvas-loading" wx:if="{{!canvasReady && poem}}">
+      <text class="text-muted">生成中...</text>
+    </view>
+  </view>
+
+  <!-- 模板选择 -->
+  <view class="template-section">
+    <text class="section-title">选择模板</text>
+    <scroll-view scroll-x class="template-scroll">
+      <view class="template-list">
+        <view class="template-item {{currentTemplate === index ? 'active' : ''}}"
+              wx:for="{{templates}}" wx:key="index"
+              bindtap="selectTemplate" data-index="{{index}}">
+          <view class="template-color"
+                style="background: {{item.bgType === 'gradient' ? 'linear-gradient(180deg, ' + item.bgColorStart + ', ' + item.bgColorEnd + ')' : item.bgColor}};">
+            <text class="template-preview-text"
+                  style="color: {{item.titleColor}};">诗</text>
+          </view>
+          <text class="template-name">{{item.name}}</text>
+        </view>
+      </view>
+    </scroll-view>
+  </view>
+
+  <!-- 操作按钮 -->
+  <view class="action-section">
+    <view class="save-btn btn-primary" bindtap="saveToAlbum">
+      <text>{{saving ? '保存中...' : '保存到相册'}}</text>
+    </view>
+    <button class="share-friend-btn btn-secondary" open-type="share">
+      <text>分享好友</text>
+    </button>
+  </view>
+</view>

@@ -1,2 +1,94 @@
-<!--pages/discover/index.wxml-->
-<text>pages/discover/index.wxml</text>
+<!-- pages/discover/index.wxml -->
+<view class="discover-page">
+
+  <!-- 搜索栏 -->
+  <view class="search-bar">
+    <view class="search-input-wrap">
+      <view class="search-icon-svg"></view>
+      <input class="search-input"
+             placeholder="搜索诗词、作者..."
+             placeholder-class="search-placeholder"
+             value="{{keyword}}"
+             bindinput="onSearchInput"
+             bindconfirm="onSearch"
+             confirm-type="search" />
+    </view>
+    <view class="filter-toggle {{showFilter ? 'active' : ''}}" bindtap="toggleFilter">
+      <text>筛选</text>
+    </view>
+  </view>
+
+  <!-- 筛选面板 -->
+  <view class="filter-panel" wx:if="{{showFilter}}">
+    <!-- 朝代筛选 -->
+    <view class="filter-group" wx:if="{{dynasties.length > 0}}">
+      <text class="filter-label">朝代</text>
+      <view class="filter-options">
+        <view class="filter-chip {{selectedDynasty === '' ? 'active' : ''}}"
+              bindtap="selectDynasty" data-value="">
+          <text>全部</text>
+        </view>
+        <view class="filter-chip {{selectedDynasty === item.dynasty ? 'active' : ''}}"
+              wx:for="{{dynasties}}" wx:key="dynasty"
+              bindtap="selectDynasty" data-value="{{item.dynasty}}">
+          <text>{{item.dynasty}}({{item.count}})</text>
+        </view>
+      </view>
+    </view>
+
+    <!-- 标签筛选 -->
+    <view class="filter-group" wx:if="{{allTags.length > 0}}">
+      <text class="filter-label">标签</text>
+      <view class="filter-options">
+        <view class="filter-chip tag-chip {{selectedTag === '' ? 'active' : ''}}"
+              bindtap="selectTag" data-value="">
+          <text>全部</text>
+        </view>
+        <view class="filter-chip tag-chip {{selectedTag === item.name ? 'active' : ''}}"
+              wx:for="{{allTags}}" wx:key="id"
+              bindtap="selectTag" data-value="{{item.name}}">
+          <text>{{item.name}}</text>
+        </view>
+      </view>
+    </view>
+
+    <!-- 清空筛选 -->
+    <view class="clear-filter" bindtap="clearFilters"
+          wx:if="{{selectedDynasty || selectedTag || keyword}}">
+      <text>清空筛选</text>
+    </view>
+  </view>
+
+  <!-- 结果提示 -->
+  <view class="result-hint" wx:if="{{!loading || poems.length > 0}}">
+    <text wx:if="{{total > 0}}">共 {{total}} 首</text>
+    <text wx:elif="{{!loading}}">暂无结果</text>
+  </view>
+
+  <!-- 诗词列表 -->
+  <view class="poem-list">
+    <view class="poem-card fade-in"
+          wx:for="{{poems}}" wx:key="id"
+          bindtap="goToDetail" data-id="{{item.id}}">
+      <view class="poem-card-header">
+        <text class="poem-card-title">{{item.title}}</text>
+        <text class="poem-card-meta">{{item.dynasty}} · {{item.author}}</text>
+      </view>
+      <text class="poem-card-preview">{{item.preview}}</text>
+      <view class="poem-card-tags" wx:if="{{item.tagsList.length > 0}}">
+        <text class="tag-capsule" wx:for="{{item.tagsList}}" wx:for-item="tag" wx:key="*this">{{tag}}</text>
+      </view>
+    </view>
+  </view>
+
+  <!-- 加载状态 -->
+  <view class="list-footer">
+    <text wx:if="{{loading}}" class="text-muted">加载中...</text>
+    <text wx:elif="{{!hasMore && poems.length > 0}}" class="text-muted">已显示全部</text>
+  </view>
+
+  <!-- 空状态 -->
+  <view class="empty-state" wx:if="{{!loading && poems.length === 0}}">
+    <text class="empty-text">未找到相关诗词</text>
+  </view>
+</view>

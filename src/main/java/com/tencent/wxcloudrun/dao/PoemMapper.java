@@ -6,6 +6,7 @@ import org.apache.ibatis.annotations.Param;
 import org.apache.ibatis.annotations.Select;
 
 import java.util.List;
+import java.util.Map;
 
 @Mapper
 public interface PoemMapper {
@@ -62,4 +63,20 @@ public interface PoemMapper {
      * 删除诗词
      */
     int deleteById(String id);
+
+    /**
+     * 朝代统计
+     */
+    List<Map<String, Object>> findDynastyStats();
+
+    /**
+     * 作者统计
+     */
+    List<Map<String, Object>> findAuthorStats(@Param("dynasty") String dynasty);
+
+    /**
+     * 按title+author查重
+     */
+    @Select("SELECT COUNT(*) FROM poems WHERE title = #{title} AND author = #{author}")
+    int countByTitleAndAuthor(@Param("title") String title, @Param("author") String author);
 }
