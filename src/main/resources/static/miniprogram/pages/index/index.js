@@ -9,54 +9,57 @@ Page({
   },
 
   onPullDownRefresh() {
-    this.loadDailyPoem().finally(() => {
+    this.loadDailyPoem()
+    setTimeout(() => {
       wx.stopPullDownRefresh()
-    })
+    }, 1000)
   },
 
   // 加载每日诗词
-  async loadDailyPoem() {
-    try {
-      this.setData({ loading: true })
-
-      const serverUrl = getApp().globalData.serverUrl
-      const res = await wx.request({
-        url: `${serverUrl}/api/poems/daily`,
-        method: 'GET'
-      })
-
-      if (res.statusCode === 200 && res.data.code === 200) {
-        this.setData({ currentPoem: res.data.data })
-      } else {
-        wx.showToast({ title: res.data.message || '加载失败', icon: 'none' })
+  loadDailyPoem() {
+    this.setData({ loading: true })
+    
+    const serverUrl = getApp().globalData.serverUrl
+    wx.request({
+      url: `${serverUrl}/api/poems/daily`,
+      method: 'GET',
+      success: (res) => {
+        if (res.statusCode === 200 && res.data && res.data.code === 200) {
+          this.setData({ currentPoem: res.data.data })
+        } else {
+          wx.showToast({ title: (res.data && res.data.message) || '加载失败', icon: 'none' })
+        }
+      },
+      fail: (error) => {
+        console.error('加载失败:', error)
+        wx.showToast({ title: '加载失败', icon: 'none' })
+      },
+      complete: () => {
+        this.setData({ loading: false })
       }
-    } catch (error) {
-      console.error('加载失败:', error)
-      wx.showToast({ title: '加载失败', icon: 'none' })
-    } finally {
-      this.setData({ loading: false })
-    }
+    })
   },
 
   // 加载随机诗词
-  async loadRandomPoem() {
-    try {
-      this.setData({ loading: true })
-
-      const serverUrl = getApp().globalData.serverUrl
-      const res = await wx.request({
-        url: `${serverUrl}/api/poems/random`,
-        method: 'GET'
-      })
-
-      if (res.statusCode === 200 && res.data.code === 200) {
-        this.setData({ currentPoem: res.data.data })
+  loadRandomPoem() {
+    this.setData({ loading: true })
+    
+    const serverUrl = getApp().globalData.serverUrl
+    wx.request({
+      url: `${serverUrl}/api/poems/random`,
+      method: 'GET',
+      success: (res) => {
+        if (res.statusCode === 200 && res.data && res.data.code === 200) {
+          this.setData({ currentPoem: res.data.data })
+        }
+      },
+      fail: () => {
+        wx.showToast({ title: '加载失败', icon: 'none' })
+      },
+      complete: () => {
+        this.setData({ loading: false })
       }
-    } catch (error) {
-      wx.showToast({ title: '加载失败', icon: 'none' })
-    } finally {
-      this.setData({ loading: false })
-    }
+    })
   },
 
   goToDetail() {

@@ -15,9 +15,10 @@ Page({
 
   onPullDownRefresh() {
     this.setData({ page: 1, poems: [], hasMore: true })
-    this.loadPoems().finally(() => {
+    this.loadPoems()
+    setTimeout(() => {
       wx.stopPullDownRefresh()
-    })
+    }, 1000)
   },
 
   onReachBottom() {
@@ -27,42 +28,43 @@ Page({
   },
 
   // 加载诗词列表
-  async loadPoems() {
+  loadPoems() {
     if (this.data.loading) return
-
-    try {
-      this.setData({ loading: true })
-
-      const serverUrl = getApp().globalData.serverUrl
-      const { page, pageSize, keyword } = this.data
-
-      const res = await wx.request({
-        url: `${serverUrl}/api/poems/list`,
-        method: 'GET',
-        data: {
-          page,
-          size: pageSize,
-          keyword
+    
+    this.setData({ loading: true })
+    
+    const serverUrl = getApp().globalData.serverUrl
+    const { page, pageSize, keyword } = this.data
+    
+    wx.request({
+      url: `${serverUrl}/api/poems/list`,
+      method: 'GET',
+      data: {
+        page,
+        size: pageSize,
+        keyword
+      },
+      success: (res) => {
+        if (res.statusCode === 200 && res.data && res.data.code === 200) {
+          const { list, total } = res.data.data
+          const poems = page === 1 ? list : [...this.data.poems, ...list]
+          const hasMore = poems.length < total
+          
+          this.setData({
+            poems,
+            hasMore,
+            page: page + 1
+          })
         }
-      })
-
-      if (res.statusCode === 200 && res.data.code === 200) {
-        const { list, total } = res.data.data
-        const poems = page === 1 ? list : [...this.data.poems, ...list]
-        const hasMore = poems.length < total
-
-        this.setData({
-          poems,
-          hasMore,
-          page: page + 1
-        })
+      },
+      fail: (error) => {
+        console.error('加载失败:', error)
+        wx.showToast({ title: '加载失败', icon: 'none' })
+      },
+      complete: () => {
+        this.setData({ loading: false })
       }
-    } catch (error) {
-      console.error('加载失败:', error)
-      wx.showToast({ title: '加载失败', icon: 'none' })
-    } finally {
-      this.setData({ loading: false })
-    }
+    })
   },
 
   // 搜索诗词
