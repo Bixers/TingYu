@@ -76,4 +76,18 @@
         DELETE FROM poems WHERE id = #{id}
     </delete>
 
+    <select id="findDynastyStats" resultType="java.util.Map">
+        SELECT dynasty, COUNT(*) as count FROM poems GROUP BY dynasty ORDER BY count DESC
+    </select>
+
+    <select id="findAuthorStats" resultType="java.util.Map">
+        SELECT author, dynasty, COUNT(*) as count FROM poems
+        <where>
+            <if test="dynasty != null and dynasty != ''">
+                AND dynasty = #{dynasty}
+            </if>
+        </where>
+        GROUP BY author, dynasty ORDER BY count DESC
+    </select>
+
 </mapper>
