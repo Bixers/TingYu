@@ -18,16 +18,17 @@ Page({
   async loadDailyPoem() {
     try {
       this.setData({ loading: true })
-      
-      const { result } = await wx.cloud.callFunction({
-        name: 'poemApi',
-        data: { action: 'getDailyPoem' }
+
+      const serverUrl = getApp().globalData.serverUrl
+      const res = await wx.request({
+        url: `${serverUrl}/api/poems/daily`,
+        method: 'GET'
       })
-      
-      if (result.code === 200 && result.data) {
-        this.setData({ currentPoem: result.data })
+
+      if (res.statusCode === 200 && res.data.code === 200) {
+        this.setData({ currentPoem: res.data.data })
       } else {
-        wx.showToast({ title: result.message || '加载失败', icon: 'none' })
+        wx.showToast({ title: res.data.message || '加载失败', icon: 'none' })
       }
     } catch (error) {
       console.error('加载失败:', error)
@@ -41,14 +42,15 @@ Page({
   async loadRandomPoem() {
     try {
       this.setData({ loading: true })
-      
-      const { result } = await wx.cloud.callFunction({
-        name: 'poemApi',
-        data: { action: 'getRandomPoem' }
+
+      const serverUrl = getApp().globalData.serverUrl
+      const res = await wx.request({
+        url: `${serverUrl}/api/poems/random`,
+        method: 'GET'
       })
-      
-      if (result.code === 200 && result.data) {
-        this.setData({ currentPoem: result.data })
+
+      if (res.statusCode === 200 && res.data.code === 200) {
+        this.setData({ currentPoem: res.data.data })
       }
     } catch (error) {
       wx.showToast({ title: '加载失败', icon: 'none' })
