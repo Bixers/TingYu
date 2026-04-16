@@ -8,9 +8,8 @@ import org.apache.ibatis.annotations.Select;
 public interface DailyPoemMapper {
 
     /**
-     * 根据日期查询
+     * 根据日期查询（含关联诗词信息，由 XML 定义）
      */
-    @Select("SELECT * FROM daily_poems WHERE date = #{date}")
     DailyPoem findByDate(String date);
 
     /**
