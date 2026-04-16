@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.tencent.wxcloudrun.dao.AuthorMapper">
+
+    <resultMap id="AuthorResultMap" type="com.tencent.wxcloudrun.model.Author">
+        <id property="id" column="id"/>
+        <result property="name" column="name"/>
+        <result property="dynasty" column="dynasty"/>
+        <result property="description" column="description"/>
+        <result property="birthYear" column="birth_year"/>
+        <result property="deathYear" column="death_year"/>
+        <result property="createdAt" column="created_at"/>
+        <result property="updatedAt" column="updated_at"/>
+    </resultMap>
+
+    <select id="findByDynasty" resultMap="AuthorResultMap">
+        SELECT * FROM authors
+        <where>
+            <if test="dynasty != null and dynasty != ''">
+                AND dynasty = #{dynasty}
+            </if>
+        </where>
+        ORDER BY name
+    </select>
+
+    <insert id="insert" parameterType="com.tencent.wxcloudrun.model.Author">
+        INSERT INTO authors (id, name, dynasty, description, birth_year, death_year, created_at, updated_at)
+        VALUES (#{id}, #{name}, #{dynasty}, #{description}, #{birthYear}, #{deathYear}, #{createdAt}, #{updatedAt})
+    </insert>
+
+</mapper>

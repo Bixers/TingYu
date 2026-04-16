@@ -76,6 +76,16 @@
         DELETE FROM poems WHERE id = #{id}
     </delete>
 
+    <update id="updateEnrichment" parameterType="com.tencent.wxcloudrun.model.Poem">
+        UPDATE poems
+        SET annotation = #{annotation},
+            appreciation = #{appreciation},
+            translation = #{translation},
+            tags = #{tags},
+            updated_at = NOW()
+        WHERE id = #{id}
+    </update>
+
     <select id="findDynastyStats" resultType="java.util.Map">
         SELECT dynasty, COUNT(*) as count FROM poems GROUP BY dynasty ORDER BY count DESC
     </select>

@@ -3,7 +3,7 @@
 
   <!-- Canvas 预览区 -->
   <view class="canvas-container">
-    <view class="canvas-wrap">
+    <view class="canvas-wrap" style="height: {{canvasStyleHeight}}rpx;">
       <canvas type="2d" id="shareCanvas" class="share-canvas"></canvas>
     </view>
     <view class="canvas-loading" wx:if="{{!canvasReady && poem}}">

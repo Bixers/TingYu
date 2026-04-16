@@ -8,11 +8,11 @@
 
   <!-- 诗词正文区 -->
   <view class="poem-section fade-in" wx:if="{{poem}}" bindtap="toggleImmersive">
-    <text class="poem-title">{{poem.title}}</text>
-    <text class="poem-meta">{{poem.dynasty}} · {{poem.author}}</text>
+    <text class="poem-title" bindlongpress="onLongPressTitle">{{poem.title}}</text>
+    <text class="poem-meta" bindlongpress="onLongPressAuthor">{{poem.dynasty}} · {{poem.author}}</text>
     <view class="poem-body">
       <block wx:for="{{contentLines}}" wx:key="index">
-        <text class="poem-line">{{item}}</text>
+        <text class="poem-line" bindlongpress="onLongPressLine" data-line="{{item}}">{{item}}</text>
       </block>
     </view>
   </view>
@@ -61,7 +61,13 @@
     <!-- Tab 内容 -->
     <view class="tab-content">
       <view class="tab-panel" wx:if="{{activeTab === 'annotation' && poem.annotation}}">
-        <text class="tab-text">{{poem.annotation}}</text>
+        <block wx:if="{{annotationList.length > 0}}">
+          <view class="annotation-item" wx:for="{{annotationList}}" wx:key="index">
+            <text class="annotation-word">{{item.word}}</text>
+            <text class="annotation-meaning">{{item.meaning}}</text>
+          </view>
+        </block>
+        <text class="tab-text" wx:else>{{poem.annotation}}</text>
       </view>
       <view class="tab-panel" wx:if="{{activeTab === 'appreciation' && poem.appreciation}}">
         <text class="tab-text">{{poem.appreciation}}</text>
@@ -85,5 +91,29 @@
   <!-- 沉浸模式退出提示 -->
   <view class="immersive-hint" wx:if="{{immersiveMode}}">
     <text>点击任意处退出沉浸模式</text>
+  </view>
+
+  <!-- 拼音弹窗 -->
+  <view class="pinyin-overlay" wx:if="{{showPinyinModal}}" catchtap="closePinyinModal">
+    <view class="pinyin-modal" catchtap="">
+      <view class="pinyin-loading" wx:if="{{pinyinLoading}}">
+        <text>正在生成拼音...</text>
+      </view>
+      <view class="pinyin-grid" wx:if="{{pinyinData && pinyinData.chars}}">
+        <view class="pinyin-char-group" wx:for="{{pinyinData.chars}}" wx:key="index">
+          <text class="pinyin-text" wx:if="{{item.pinyin}}">{{item.pinyin}}</text>
+          <view class="pinyin-placeholder" wx:else></view>
+          <text class="pinyin-char">{{item.ch}}</text>
+        </view>
+      </view>
+      <view class="pinyin-actions">
+        <view class="pinyin-copy-btn" bindtap="copyText">
+          <text>复制原文</text>
+        </view>
+        <view class="pinyin-close-btn" bindtap="closePinyinModal">
+          <text>关闭</text>
+        </view>
+      </view>
+    </view>
   </view>
 </view>

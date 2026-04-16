@@ -32,6 +32,9 @@ public class PoemCrawlerService {
     // chinese-poetry GitHub 原始文件基础URL
     private static final String BASE_URL = "https://raw.githubusercontent.com/chinese-poetry/chinese-poetry/master/";
 
+    // ChinesePoetryLibrary 富化数据源（含译文/赏析/注释）
+    private static final String ENRICHED_BASE_URL = "https://raw.githubusercontent.com/byj233/ChinesePoetryLibrary/main/";
+
     // 标签关键词映射
     private static final Map<String, String[]> TAG_KEYWORDS = new LinkedHashMap<>();
     static {
@@ -328,6 +331,151 @@ public class PoemCrawlerService {
     }
 
     /**
+     * 从 ChinesePoetryLibrary 导入富化诗词数据（含译文/赏析/注释）
+     * 策略：已存在的诗词更新富化字段，不存在的插入新记录
+     * @param limit 最大处理条数（插入+更新）
+     * @return 实际处理数量
+     */
+    public int importEnrichedPoems(int limit) {
+        int total = 0;
+        // 唐诗：tang_0.json ~ tang_54.json（55个文件，每个1000首）
+        for (int i = 0; i < 55 && total < limit; i++) {
+            try {
+                int count = importEnrichedFromFile("唐/tang_" + i + ".json", "唐", limit - total);
+                total += count;
+                if (count > 0) {
+                    System.out.println("富化导入 tang_" + i + ".json: " + count + " 首");
+                }
+            } catch (Exception e) {
+                System.err.println("富化导入 tang_" + i + ".json 失败: " + e.getMessage());
+            }
+        }
+        // 宋词：songci_0.json ~ songci_19.json（20个文件）
+        for (int i = 0; i < 20 && total < limit; i++) {
+            try {
+                int count = importEnrichedFromFile("宋/词/songci_" + i + ".json", "宋", limit - total);
+                total += count;
+                if (count > 0) {
+                    System.out.println("富化导入 songci_" + i + ".json: " + count + " 首");
+                }
+            } catch (Exception e) {
+                System.err.println("富化导入 songci_" + i + ".json 失败: " + e.getMessage());
+            }
+        }
+        return total;
+    }
+
+    /**
+     * 从单个富化JSON文件导入/更新诗词
+     */
+    @SuppressWarnings("unchecked")
+    private int importEnrichedFromFile(String filePath, String dynasty, int limit) throws Exception {
+        String url = ENRICHED_BASE_URL + filePath;
+        String json = restTemplate.getForObject(url, String.class);
+        if (json == null) return 0;
+
+        List<Map<String, Object>> poems = objectMapper.readValue(json,
+            new TypeReference<List<Map<String, Object>>>() {});
+
+        int processed = 0;
+        for (Map<String, Object> data : poems) {
+            if (processed >= limit) break;
+
+            String title = (String) data.get("title");
+            String author = (String) data.get("author");
+            String content = (String) data.get("content");
+            String translation = (String) data.get("translation");
+            String appreciation = (String) data.get("appreciation");
+            Object explanation = data.get("explanation");
+            Object tags = data.get("tags");
+
+            if (title == null || author == null || content == null) continue;
+            if (title.trim().isEmpty()) continue;
+
+            // 将 explanation 数组序列化为 JSON 字符串存入 annotation 字段
+            String annotationJson = null;
+            if (explanation != null) {
+                try {
+                    annotationJson = objectMapper.writeValueAsString(explanation);
+                } catch (Exception ignored) {}
+            }
+
+            // 将 tags 数组序列化为 JSON 字符串
+            String tagsJson = null;
+            if (tags != null) {
+                try {
+                    tagsJson = objectMapper.writeValueAsString(tags);
+                } catch (Exception ignored) {}
+            }
+
+            // 检查诗词是否已存在
+            Poem existing = poemMapper.findByTitleAndAuthor(title, author);
+            if (existing != null) {
+                // 已存在：仅更新空缺的富化字段
+                boolean needUpdate = false;
+                if (isBlank(existing.getTranslation()) && translation != null && !translation.isEmpty()) {
+                    existing.setTranslation(translation);
+                    needUpdate = true;
+                }
+                if (isBlank(existing.getAppreciation()) && appreciation != null && !appreciation.isEmpty()) {
+                    existing.setAppreciation(appreciation);
+                    needUpdate = true;
+                }
+                if (isBlank(existing.getAnnotation()) && annotationJson != null) {
+                    existing.setAnnotation(annotationJson);
+                    needUpdate = true;
+                }
+                if (needUpdate) {
+                    // tags 如果源数据更丰富也一并更新
+                    if (tagsJson != null && !tagsJson.equals("[]")) {
+                        existing.setTags(tagsJson);
+                    }
+                    try {
+                        poemMapper.updateEnrichment(existing);
+                        processed++;
+                    } catch (Exception e) {
+                        System.err.println("更新富化 [" + title + "] 失败: " + e.getMessage());
+                    }
+                }
+            } else {
+                // 不存在：插入新诗词
+                String[] lines = content.split("\n");
+                if (lines.length > 20) continue;
+                if (title.length() > 50) continue;
+
+                String contentJson = objectMapper.writeValueAsString(Arrays.asList(lines));
+
+                Poem poem = new Poem();
+                poem.setId(generateId());
+                poem.setTitle(title);
+                poem.setDynasty(dynasty);
+                poem.setAuthor(author);
+                poem.setContent(contentJson);
+                poem.setTranslation(translation);
+                poem.setAppreciation(appreciation);
+                poem.setAnnotation(annotationJson);
+                poem.setTags(tagsJson != null && !tagsJson.equals("[]") ? tagsJson : inferTags(title, Arrays.asList(lines)));
+                poem.setSource("ChinesePoetryLibrary");
+                poem.setSourceUrl("https://github.com/byj233/ChinesePoetryLibrary");
+                poem.setCreatedAt(LocalDateTime.now());
+                poem.setUpdatedAt(LocalDateTime.now());
+
+                try {
+                    poemMapper.insert(poem);
+                    processed++;
+                } catch (Exception e) {
+                    System.err.println("插入富化诗词 [" + title + "] 失败: " + e.getMessage());
+                }
+            }
+        }
+        return processed;
+    }
+
+    private boolean isBlank(String s) {
+        return s == null || s.trim().isEmpty();
+    }
+
+    /**
      * 应用启动完成后异步执行一次诗词导入
      * 使用 ApplicationReadyEvent 确保应用完全就绪（含健康检查）后再执行
      * @Async 保证不阻塞主线程
@@ -342,8 +490,9 @@ public class PoemCrawlerService {
             int song = importSongPoems(limitPerSource);
             int songci = importSongCi(limitPerSource);
             int authors = importAuthors(200);
+            int enriched = importEnrichedPoems(200);
             System.out.println("===== 启动导入完成: 唐诗=" + tang + " 宋诗=" + song
-                + " 宋词=" + songci + " 作者=" + authors + " =====");
+                + " 宋词=" + songci + " 作者=" + authors + " 富化=" + enriched + " =====");
         } catch (Exception e) {
             System.err.println("===== 启动导入异常: " + e.getMessage() + " =====");
         }
@@ -362,8 +511,9 @@ public class PoemCrawlerService {
             int song = importSongPoems(limitPerSource);
             int songci = importSongCi(limitPerSource);
             int authors = importAuthors(200);
+            int enriched = importEnrichedPoems(500);
             System.out.println("===== 定时导入完成: 唐诗=" + tang + " 宋诗=" + song
-                + " 宋词=" + songci + " 作者=" + authors + " =====");
+                + " 宋词=" + songci + " 作者=" + authors + " 富化=" + enriched + " =====");
         } catch (Exception e) {
             System.err.println("===== 定时导入异常: " + e.getMessage() + " =====");
         }

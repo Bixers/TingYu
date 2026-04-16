@@ -10,7 +10,7 @@
 
 /* Canvas 预览区 */
 .canvas-container {
-  flex: 1;
+  flex-shrink: 0;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -20,7 +20,7 @@
 
 .canvas-wrap {
   width: 560rpx;
-  height: 750rpx;
+  height: 750rpx; /* fallback，实际由JS动态计算 */
   border-radius: 16rpx;
   overflow: hidden;
   box-shadow: 0 12rpx 48rpx rgba(58, 74, 63, 0.15);

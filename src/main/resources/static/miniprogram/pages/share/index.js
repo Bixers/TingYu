@@ -69,7 +69,8 @@ Page({
     currentTemplate: 0,
     templates: TEMPLATES,
     saving: false,
-    canvasReady: false
+    canvasReady: false,
+    canvasStyleHeight: 750
   },
 
   onLoad(options) {
@@ -81,8 +82,9 @@ Page({
   loadPoem(id) {
     wx.showLoading({ title: '加载中...' })
     api.getPoemDetail(id).then(poem => {
-      const contentLines = api.parseContent(poem.content)
-      this.setData({ poem, contentLines }, () => {
+      var contentLines = api.parseContent(poem.content)
+      var canvasStyleHeight = this.calcCanvasHeight(contentLines)
+      this.setData({ poem: poem, contentLines: contentLines, canvasStyleHeight: canvasStyleHeight }, () => {
         this.initCanvas()
       })
     }).catch(err => {
@@ -91,6 +93,32 @@ Page({
     }).finally(() => {
       wx.hideLoading()
     })
+  },
+
+  // 根据诗词行数计算Canvas所需高度(rpx)
+  calcCanvasHeight: function(contentLines) {
+    var sysInfo = wx.getSystemInfoSync()
+    var screenWidth = sysInfo.windowWidth
+    // Canvas宽度: 560rpx → CSS px
+    var canvasWidthPx = 560 / 750 * screenWidth
+    var paddingX = 50
+    var contentW = canvasWidthPx - paddingX * 2
+
+    var lineFontSize = 16
+    var lineHeight = lineFontSize * 2.2
+
+    // 估算实际渲染行数（中文字符宽度 ≈ fontSize）
+    var actualLines = 0
+    for (var i = 0; i < contentLines.length; i++) {
+      var estimatedWidth = contentLines[i].length * lineFontSize
+      actualLines += estimatedWidth > contentW ? Math.ceil(estimatedWidth / contentW) : 1
+    }
+
+    // 总高度(px): 上边距50 + 标题22 + 间距20 + meta12 + 间距36 + 正文 + 底部80
+    var totalPx = 50 + 22 + 20 + 12 + 36 + actualLines * lineHeight + 80
+    // 转换为rpx
+    var heightRpx = Math.ceil(totalPx / screenWidth * 750)
+    return Math.max(750, heightRpx)
   },
 
   // 初始化Canvas

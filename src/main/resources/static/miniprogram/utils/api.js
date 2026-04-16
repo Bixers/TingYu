@@ -88,6 +88,11 @@ function getAuthorByName(name) {
   return request(`/api/authors/by-name?name=${encodeURIComponent(name)}`)
 }
 
+// 拼音转换
+function getPinyin(text) {
+  return request('/api/tools/pinyin', 'POST', { text: text })
+}
+
 /**
  * 解析诗词内容为行数组
  */
@@ -130,6 +135,7 @@ module.exports = {
   getDynasties,
   getAuthors,
   getAuthorByName,
+  getPinyin,
   parseContent,
   parseTags
 }

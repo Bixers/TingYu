@@ -79,4 +79,15 @@ public interface PoemMapper {
      */
     @Select("SELECT COUNT(*) FROM poems WHERE title = #{title} AND author = #{author}")
     int countByTitleAndAuthor(@Param("title") String title, @Param("author") String author);
+
+    /**
+     * 按title+author查找诗词
+     */
+    @Select("SELECT * FROM poems WHERE title = #{title} AND author = #{author} LIMIT 1")
+    Poem findByTitleAndAuthor(@Param("title") String title, @Param("author") String author);
+
+    /**
+     * 仅更新富化字段（译文/赏析/注释/标签）
+     */
+    int updateEnrichment(Poem poem);
 }
