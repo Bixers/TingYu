@@ -1,0 +1,79 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.tencent.wxcloudrun.dao.PoemMapper">
+
+    <resultMap id="PoemResultMap" type="com.tencent.wxcloudrun.model.Poem">
+        <id property="id" column="id"/>
+        <result property="title" column="title"/>
+        <result property="dynasty" column="dynasty"/>
+        <result property="author" column="author"/>
+        <result property="content" column="content"/>
+        <result property="annotation" column="annotation"/>
+        <result property="appreciation" column="appreciation"/>
+        <result property="translation" column="translation"/>
+        <result property="tags" column="tags"/>
+        <result property="source" column="source"/>
+        <result property="sourceUrl" column="source_url"/>
+        <result property="createdAt" column="created_at"/>
+        <result property="updatedAt" column="updated_at"/>
+    </resultMap>
+
+    <select id="searchPoems" resultMap="PoemResultMap">
+        SELECT * FROM poems
+        <where>
+            <if test="keyword != null and keyword != ''">
+                AND (title LIKE CONCAT('%', #{keyword}, '%')
+                OR author LIKE CONCAT('%', #{keyword}, '%')
+                OR content LIKE CONCAT('%', #{keyword}, '%'))
+            </if>
+            <if test="dynasty != null and dynasty != ''">
+                AND dynasty = #{dynasty}
+            </if>
+        </where>
+        LIMIT #{offset}, #{limit}
+    </select>
+
+    <select id="countSearchPoems" resultType="java.lang.Long">
+        SELECT COUNT(*) FROM poems
+        <where>
+            <if test="keyword != null and keyword != ''">
+                AND (title LIKE CONCAT('%', #{keyword}, '%')
+                OR author LIKE CONCAT('%', #{keyword}, '%')
+                OR content LIKE CONCAT('%', #{keyword}, '%'))
+            </if>
+            <if test="dynasty != null and dynasty != ''">
+                AND dynasty = #{dynasty}
+            </if>
+        </where>
+    </select>
+
+    <insert id="insert" parameterType="com.tencent.wxcloudrun.model.Poem">
+        INSERT INTO poems (id, title, dynasty, author, content, annotation, appreciation, 
+                          translation, tags, source, source_url, created_at, updated_at)
+        VALUES (#{id}, #{title}, #{dynasty}, #{author}, #{content}, #{annotation}, #{appreciation},
+                #{translation}, #{tags}, #{source}, #{sourceUrl}, #{createdAt}, #{updatedAt})
+    </insert>
+
+    <update id="update" parameterType="com.tencent.wxcloudrun.model.Poem">
+        UPDATE poems
+        <set>
+            <if test="title != null">title = #{title},</if>
+            <if test="dynasty != null">dynasty = #{dynasty},</if>
+            <if test="author != null">author = #{author},</if>
+            <if test="content != null">content = #{content},</if>
+            <if test="annotation != null">annotation = #{annotation},</if>
+            <if test="appreciation != null">appreciation = #{appreciation},</if>
+            <if test="translation != null">translation = #{translation},</if>
+            <if test="tags != null">tags = #{tags},</if>
+            <if test="source != null">source = #{source},</if>
+            <if test="sourceUrl != null">source_url = #{sourceUrl},</if>
+            updated_at = NOW()
+        </set>
+        WHERE id = #{id}
+    </update>
+
+    <delete id="deleteById">
+        DELETE FROM poems WHERE id = #{id}
+    </delete>
+
+</mapper>

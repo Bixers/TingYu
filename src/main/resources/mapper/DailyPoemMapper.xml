@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.tencent.wxcloudrun.dao.DailyPoemMapper">
+
+    <resultMap id="DailyPoemResultMap" type="com.tencent.wxcloudrun.model.DailyPoem">
+        <id property="id" column="id"/>
+        <result property="poemId" column="poem_id"/>
+        <result property="date" column="date"/>
+        <result property="createdAt" column="created_at"/>
+        <association property="poem" javaType="com.tencent.wxcloudrun.model.Poem">
+            <id property="id" column="poem_id"/>
+            <result property="title" column="title"/>
+            <result property="dynasty" column="dynasty"/>
+            <result property="author" column="author"/>
+            <result property="content" column="content"/>
+            <result property="annotation" column="annotation"/>
+            <result property="appreciation" column="appreciation"/>
+            <result property="translation" column="translation"/>
+            <result property="tags" column="tags"/>
+        </association>
+    </resultMap>
+
+    <select id="findByDate" resultMap="DailyPoemResultMap">
+        SELECT dp.*, p.* 
+        FROM daily_poems dp
+        LEFT JOIN poems p ON dp.poem_id = p.id
+        WHERE dp.date = #{date}
+    </select>
+
+    <insert id="insert" parameterType="com.tencent.wxcloudrun.model.DailyPoem">
+        INSERT INTO daily_poems (id, poem_id, date, created_at)
+        VALUES (#{id}, #{poemId}, #{date}, #{createdAt})
+    </insert>
+
+</mapper>
