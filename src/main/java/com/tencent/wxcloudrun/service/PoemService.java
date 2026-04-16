@@ -116,7 +116,7 @@ public class PoemService {
      */
     @PostConstruct
     public void initMockData() {
-        // 检查是否已有数据
+        try {
         List<Poem> existing = poemMapper.findAll();
         if (!existing.isEmpty()) {
             System.out.println("数据库已有数据，跳过初始化");
@@ -167,6 +167,9 @@ public class PoemService {
         }
         
         System.out.println("初始化完成，共添加 " + mockPoems.size() + " 首诗词");
+        } catch (Exception e) {
+            System.err.println("诗词数据初始化失败（不影响应用启动）: " + e.getMessage());
+        }
     }
     
     private Poem createPoem(String title, String dynasty, String author, String content,
