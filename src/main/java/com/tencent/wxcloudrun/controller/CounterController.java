@@ -43,14 +43,18 @@ public class CounterController {
   }
 
   /**
-   * 获取当前计数（健康检查用，不依赖数据库）
+   * 获取当前计数
    * @return API response json
    */
   @GetMapping(value = "/api/count")
   ApiResponse get() {
     logger.info("/api/count get request");
-    // 健康检查端点，直接返回成功，不查询数据库
-    return ApiResponse.ok(0);
+    Optional<Counter> counter = counterService.getCounter(1);
+    Integer count = 0;
+    if (counter.isPresent()) {
+      count = counter.get().getCount();
+    }
+    return ApiResponse.ok(count);
   }
 
 
