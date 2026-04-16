@@ -19,10 +19,13 @@ Page({
   loadDailyPoem() {
     this.setData({ loading: true })
     
-    const serverUrl = getApp().globalData.serverUrl
-    wx.request({
-      url: `${serverUrl}/api/poems/daily`,
+    const serviceName = getApp().globalData.serviceName
+    wx.cloud.callContainer({
+      path: '/api/poems/daily',
       method: 'GET',
+      header: {
+        'X-WX-SERVICE': serviceName
+      },
       success: (res) => {
         if (res.statusCode === 200 && res.data && res.data.code === 200) {
           this.setData({ currentPoem: res.data.data })
@@ -44,10 +47,13 @@ Page({
   loadRandomPoem() {
     this.setData({ loading: true })
     
-    const serverUrl = getApp().globalData.serverUrl
-    wx.request({
-      url: `${serverUrl}/api/poems/random`,
+    const serviceName = getApp().globalData.serviceName
+    wx.cloud.callContainer({
+      path: '/api/poems/random',
       method: 'GET',
+      header: {
+        'X-WX-SERVICE': serviceName
+      },
       success: (res) => {
         if (res.statusCode === 200 && res.data && res.data.code === 200) {
           this.setData({ currentPoem: res.data.data })

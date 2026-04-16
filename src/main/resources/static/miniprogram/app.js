@@ -13,7 +13,7 @@ App({
 
   globalData: {
     userInfo: null,
-    // 云托管服务域名，部署后需要替换为实际域名
-    serverUrl: 'https://springboot-84kb-0geebvguda-1307584564.ap-shanghai.app.tcloudbase.com'
+    // 云托管服务名称
+    serviceName: 'springboot-84kb'
   }
 })

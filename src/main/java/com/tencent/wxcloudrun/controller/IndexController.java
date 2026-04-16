@@ -1,22 +1,26 @@
 package com.tencent.wxcloudrun.controller;
 
-import org.springframework.stereotype.Controller;
+import com.tencent.wxcloudrun.dto.ApiResponse;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.RestController;
 
 /**
- * index控制器
+ * 首页控制器
  */
-@Controller
-
+@RestController
 public class IndexController {
 
   /**
-   * 主页页面
-   * @return API response html
+   * 健康检查与首页
    */
-  @GetMapping
-  public String index() {
-    return "index";
+  @GetMapping("/")
+  public ApiResponse<String> index() {
+    return ApiResponse.success("听雨眠舟服务启动成功");
+  }
+
+  @GetMapping("/api/health")
+  public ApiResponse<String> health() {
+    return ApiResponse.success("ok");
   }
 
 }

@@ -1,14 +1,10 @@
 {
-	// 本配置文件仅配合模板部署使用，为模板部署的服务生成「服务设置」的初始值。
-	// 模板部署结束后，后续服务发布与本配置文件完全无关，修改「服务设置」请到控制台操作。
-	// 复制模板代码自行开发请忽略本配置文件。
-	
-	"containerPort": 80,                            
-	"minNum": 0,                                    
-	"maxNum": 5,                                   
-	"cpu": 1,                                    	
-	"mem": 2,                                     	
-	"policyType": "cpu",                            
+	"containerPort": 80,
+	"minNum": 0,
+	"maxNum": 5,
+	"cpu": 1,
+	"mem": 2,
+	"policyType": "cpu",
 	"policyThreshold": 50,
 	"policyDetails": [
 		{
@@ -20,12 +16,13 @@
 			"PolicyThreshold": 50
 		}
 	],
-	"envParams": {},                                
-	"customLogs": "stdout",                         
-	"dataBaseName":"springboot_demo",               
-	"executeSQLs":[
-		"CREATE DATABASE IF NOT EXISTS springboot_demo;",
-		"USE springboot_demo;",
-		"CREATE TABLE IF NOT EXISTS `Counters` (`id` int(11) NOT NULL AUTO_INCREMENT, `count` int(11) NOT NULL DEFAULT 1, `createdAt` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP, `updatedAt` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP, PRIMARY KEY (`id`)) ENGINE = InnoDB DEFAULT CHARSET = utf8;"
-	]                                               
+	"envParams": {},
+	"customLogs": "stdout",
+	"dataBaseName": "tingyu",
+	"executeSQLs": [
+		"CREATE DATABASE IF NOT EXISTS tingyu DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;",
+		"USE tingyu;",
+		"CREATE TABLE IF NOT EXISTS `poems` (`id` VARCHAR(64) PRIMARY KEY, `title` VARCHAR(255) NOT NULL, `dynasty` VARCHAR(50) NOT NULL, `author` VARCHAR(100) NOT NULL, `content` TEXT NOT NULL, `annotation` TEXT, `appreciation` TEXT, `translation` TEXT, `tags` JSON, `source` VARCHAR(100), `source_url` VARCHAR(500), `created_at` TIMESTAMP DEFAULT CURRENT_TIMESTAMP, `updated_at` TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;",
+		"CREATE TABLE IF NOT EXISTS `daily_poems` (`id` VARCHAR(64) PRIMARY KEY, `poem_id` VARCHAR(64) NOT NULL, `date` VARCHAR(10) NOT NULL, `created_at` TIMESTAMP DEFAULT CURRENT_TIMESTAMP, UNIQUE KEY `uk_date` (`date`)) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;"
+	]
 }

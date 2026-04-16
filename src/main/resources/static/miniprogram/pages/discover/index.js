@@ -33,16 +33,14 @@ Page({
     
     this.setData({ loading: true })
     
-    const serverUrl = getApp().globalData.serverUrl
+    const serviceName = getApp().globalData.serviceName
     const { page, pageSize, keyword } = this.data
     
-    wx.request({
-      url: `${serverUrl}/api/poems/list`,
+    wx.cloud.callContainer({
+      path: `/api/poems/list?page=${page}&size=${pageSize}&keyword=${keyword || ''}`,
       method: 'GET',
-      data: {
-        page,
-        size: pageSize,
-        keyword
+      header: {
+        'X-WX-SERVICE': serviceName
       },
       success: (res) => {
         if (res.statusCode === 200 && res.data && res.data.code === 200) {

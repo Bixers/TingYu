@@ -15,10 +15,13 @@ Page({
   loadPoemDetail(id) {
     this.setData({ loading: true })
     
-    const serverUrl = getApp().globalData.serverUrl
-    wx.request({
-      url: `${serverUrl}/api/poems/${id}`,
+    const serviceName = getApp().globalData.serviceName
+    wx.cloud.callContainer({
+      path: `/api/poems/${id}`,
       method: 'GET',
+      header: {
+        'X-WX-SERVICE': serviceName
+      },
       success: (res) => {
         if (res.statusCode === 200 && res.data && res.data.code === 200) {
           this.setData({ poem: res.data.data })
