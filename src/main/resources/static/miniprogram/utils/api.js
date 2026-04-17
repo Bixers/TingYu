@@ -107,10 +107,16 @@ function registerUser(data) {
  */
 function parseContent(content) {
   if (!content) return []
+  content = content.replace(/\r/g, '')
   try {
     const parsed = JSON.parse(content)
     if (Array.isArray(parsed)) return parsed
-    return [String(parsed)]
+    // JSON字符串类型，按换行拆分
+    var str = String(parsed)
+    if (str.indexOf('\n') !== -1) {
+      return str.split('\n').filter(function(s) { return s.trim() })
+    }
+    return [str]
   } catch (e) {
     return content.split(/[，。！？；：、\n]/).filter(s => s.trim()).map((line, index, arr) => {
       return line
