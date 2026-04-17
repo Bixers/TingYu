@@ -10,6 +10,8 @@
 - **首页** - 每日推荐 / 随机切换诗词卡片
 - **发现** - 朝代筛选、标签筛选、关键词搜索，分页浏览
 - **详情** - 注释 / 赏析 / 译文 Tab 切换，作者介绍，标签跳转，沉浸阅读模式
+- **我的** - 微信授权登录（头像+昵称），修改资料，退出/重新绑定
+- **繁简切换** - 诗词默认简体展示，首页/详情页一键繁简切换，跨页偏好同步
 - **拼音** - 长按诗句/标题/作者显示带声调拼音，支持复制
 - **卡片分享** - 5款模板（素纸/墨夜/竹青/淡金/烟雨），保存相册或分享好友
 - **自适应卡片** - 长诗自动扩展卡片高度
@@ -20,6 +22,7 @@
 - **定时任务** - 每周一凌晨自动导入新数据，启动时异步增量导入
 - **智能标签** - 基于关键词自动推断诗词标签（季节/意象/题材/情感等）
 - **拼音服务** - pinyin4j 中文转拼音（含声调）
+- **用户系统** - 基于微信 OpenID 的用户注册/更新，头像云存储
 
 ## 技术栈
 
@@ -45,6 +48,7 @@
     │   │   ├── AuthorController.java   作者 API
     │   │   ├── TagController.java      标签 API
     │   │   ├── MetaController.java     朝代/作者统计 API
+    │   │   ├── UserController.java     用户 API (登录/注册/资料)
     │   │   ├── AdminController.java    管理接口 (触发导入)
     │   │   ├── ToolController.java     工具 API (拼音转换)
     │   │   └── IndexController.java    健康检查
@@ -54,9 +58,10 @@
     │   │   ├── PinyinService.java      拼音转换
     │   │   ├── AuthorService.java      作者查询
     │   │   ├── TagService.java         标签查询
-    │   │   └── MetaService.java        统计查询
+    │   │   ├── MetaService.java        统计查询
+    │   │   └── UserService.java        用户注册/更新
     │   ├── dao/                        MyBatis Mapper 接口
-    │   ├── model/                      实体类 (Poem, Author, Tag, DailyPoem)
+    │   ├── model/                      实体类 (Poem, Author, Tag, DailyPoem, User)
     │   └── dto/                        DTO (ApiResponse, PageResult, PinyinResult)
     └── resources/
         ├── application.yml             数据库/端口配置
@@ -64,12 +69,15 @@
         ├── mapper/                     MyBatis XML 映射
         └── static/miniprogram/         微信小程序前端代码
             ├── app.js / app.json       小程序入口配置
-            ├── utils/api.js            统一 API 请求封装
+            ├── utils/
+            │   ├── api.js              统一 API 请求封装
+            │   └── chinese-convert.js  繁简转换工具 (2500+ 字符映射)
             └── pages/
                 ├── index/              首页 (每日诗词卡片)
                 ├── detail/             详情页 (注释/赏析/译文/拼音)
                 ├── discover/           发现页 (搜索/筛选/列表)
-                └── share/              卡片分享页 (Canvas 绘制)
+                ├── share/              卡片分享页 (Canvas 绘制)
+                └── profile/            我的页面 (登录/资料/退出)
 ```
 
 ## API 接口
@@ -87,6 +95,8 @@
 | GET | `/api/meta/dynasties` | 朝代统计 |
 | GET | `/api/meta/authors` | 作者统计 |
 | POST | `/api/tools/pinyin` | 中文转拼音 |
+| GET | `/api/user/profile` | 获取当前用户信息 |
+| POST | `/api/user/register` | 用户注册/更新资料 |
 | POST | `/api/admin/import-poems` | 触发诗词导入 |
 
 ## 部署
@@ -119,6 +129,20 @@ mvn spring-boot:run
 [MIT](./LICENSE)
 
 ## 更新记录
+
+### v0.0.6 (2026-04-17)
+- 新增"我的"页签（TabBar 第三项），含用户信息卡片
+- 微信授权登录：chooseAvatar 选头像 + nickname 输入昵称
+- 头像上传云存储，用户数据持久化到 MySQL users 表
+- 支持修改资料（复用登录弹窗预填已有信息）
+- 支持退出登录并重新绑定
+- 后端新增 UserController / UserService / UserMapper 用户体系
+
+### v0.0.5 (2026-04-17)
+- 诗词默认简体展示，新增繁简转换工具（2500+ 字符映射）
+- 首页/详情页添加繁/简一键切换按钮
+- 发现页/分享页同步转换，跨页偏好自动同步
+- 偏好持久化到 localStorage，重启自动恢复
 
 ### v0.0.4 (2026-04-16)
 - 爬虫接入 ChinesePoetryLibrary 数据源，自动导入译文/赏析/注释
