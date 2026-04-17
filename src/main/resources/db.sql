@@ -125,3 +125,15 @@ INSERT INTO tags (id, name, description, category) VALUES
 ('tag_013', '豪放', '豪放派诗词', '风格'),
 ('tag_014', '婉约', '婉约派诗词', '风格'),
 ('tag_015', '励志', '励志向上的诗词', '主题');
+
+-- =============================================
+-- 用户表
+-- =============================================
+CREATE TABLE IF NOT EXISTS users (
+    id VARCHAR(64) PRIMARY KEY,
+    open_id VARCHAR(128) NOT NULL UNIQUE,
+    nickname VARCHAR(100) NOT NULL,
+    avatar_url VARCHAR(500),
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;

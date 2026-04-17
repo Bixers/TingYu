@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.tencent.wxcloudrun.dao.UserMapper">
+
+    <resultMap id="UserResultMap" type="com.tencent.wxcloudrun.model.User">
+        <id property="id" column="id"/>
+        <result property="openId" column="open_id"/>
+        <result property="nickname" column="nickname"/>
+        <result property="avatarUrl" column="avatar_url"/>
+        <result property="createdAt" column="created_at"/>
+        <result property="updatedAt" column="updated_at"/>
+    </resultMap>
+
+    <insert id="insert" parameterType="com.tencent.wxcloudrun.model.User">
+        INSERT INTO users (id, open_id, nickname, avatar_url, created_at, updated_at)
+        VALUES (#{id}, #{openId}, #{nickname}, #{avatarUrl}, #{createdAt}, #{updatedAt})
+    </insert>
+
+    <update id="update" parameterType="com.tencent.wxcloudrun.model.User">
+        UPDATE users
+        SET nickname = #{nickname},
+            avatar_url = #{avatarUrl},
+            updated_at = #{updatedAt}
+        WHERE open_id = #{openId}
+    </update>
+
+</mapper>

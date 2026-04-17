@@ -13,10 +13,18 @@ App({
     // 读取繁简偏好（默认简体）
     var useTraditional = wx.getStorageSync('useTraditional')
     this.globalData.useTraditional = useTraditional === true
+
+    // 恢复登录状态
+    var userInfo = wx.getStorageSync('userInfo')
+    if (userInfo && userInfo.nickname) {
+      this.globalData.userInfo = userInfo
+      this.globalData.isLoggedIn = true
+    }
   },
 
   globalData: {
     userInfo: null,
+    isLoggedIn: false,
     // 云托管服务名称
     serviceName: 'springboot-84kb',
     // 标签跳转中转

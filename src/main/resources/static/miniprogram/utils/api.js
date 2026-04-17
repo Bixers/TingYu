@@ -93,6 +93,15 @@ function getPinyin(text) {
   return request('/api/tools/pinyin', 'POST', { text: text })
 }
 
+// 用户相关
+function getUserProfile() {
+  return request('/api/user/profile')
+}
+
+function registerUser(data) {
+  return request('/api/user/register', 'POST', data)
+}
+
 /**
  * 解析诗词内容为行数组
  */
@@ -136,6 +145,8 @@ module.exports = {
   getAuthors,
   getAuthorByName,
   getPinyin,
+  getUserProfile,
+  registerUser,
   parseContent,
   parseTags
 }
