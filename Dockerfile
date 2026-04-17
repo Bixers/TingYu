@@ -5,6 +5,10 @@ FROM maven:3.6.0-jdk-8-slim as build
 # 指定构建过程中的工作目录
 WORKDIR /app
 
+# 确保构建阶段使用 UTF-8 编码
+ENV LANG=C.UTF-8
+ENV LC_ALL=C.UTF-8
+
 # 将src目录下所有文件，拷贝到工作目录中src目录下（.gitignore/.dockerignore中文件除外）
 COPY src /app/src
 
@@ -13,7 +17,7 @@ COPY settings.xml pom.xml /app/
 
 # 执行代码编译命令
 # 自定义settings.xml, 选用国内镜像源以提高下载速度
-RUN mvn -s /app/settings.xml -f /app/pom.xml clean package
+RUN mvn -s /app/settings.xml -f /app/pom.xml clean package -Dfile.encoding=UTF-8
 
 # 选择运行时基础镜像
 FROM alpine:3.13
@@ -43,4 +47,4 @@ EXPOSE 80
 # 执行启动命令.
 # 写多行独立的CMD命令是错误写法！只有最后一行CMD命令会被执行，之前的都会被忽略，导致业务报错。
 # 请参考[Docker官方文档之CMD命令](https://docs.docker.com/engine/reference/builder/#cmd)
-CMD ["java", "-jar", "/app/springboot-wxcloudrun-1.0.jar"]
+CMD ["java", "-Dfile.encoding=UTF-8", "-jar", "/app/springboot-wxcloudrun-1.0.jar"]
