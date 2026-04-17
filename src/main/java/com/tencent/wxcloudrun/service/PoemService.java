@@ -6,15 +6,25 @@ import com.tencent.wxcloudrun.dto.PageResult;
 import com.tencent.wxcloudrun.model.DailyPoem;
 import com.tencent.wxcloudrun.model.Poem;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.context.event.ApplicationReadyEvent;
+import org.springframework.context.event.EventListener;
+import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 
 import javax.annotation.PostConstruct;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.List;
+import java.util.Random;
+import java.util.UUID;
 
 @Service
 public class PoemService {
+
+    private static final int CLEAN_BATCH_SIZE = 200;
 
     @Autowired
     private PoemMapper poemMapper;
@@ -22,80 +32,190 @@ public class PoemService {
     @Autowired
     private DailyPoemMapper dailyPoemMapper;
 
-    /**
-     * 获取每日诗词
-     */
     public Poem getDailyPoem() {
         String today = LocalDate.now().format(DateTimeFormatter.ISO_DATE);
-        
-        // 先查询今天是否已有推荐
+
         DailyPoem existing = dailyPoemMapper.findByDate(today);
-        if (existing != null) {
+        if (existing != null && existing.getPoem() != null && !isInvalidPoem(existing.getPoem())) {
             return existing.getPoem();
         }
-        
-        // 根据日期哈希选择诗词
+
         List<Poem> allPoems = poemMapper.findAll();
         if (allPoems.isEmpty()) {
             return null;
         }
-        
+
         int hash = today.hashCode();
         int index = Math.abs(hash) % allPoems.size();
         Poem selectedPoem = allPoems.get(index);
-        
-        // 保存每日推荐记录
+
         DailyPoem dailyPoem = new DailyPoem();
         dailyPoem.setId(generateId());
         dailyPoem.setPoemId(selectedPoem.getId());
         dailyPoem.setDate(today);
         dailyPoem.setCreatedAt(java.time.LocalDateTime.now());
         dailyPoemMapper.insert(dailyPoem);
-        
+
         return selectedPoem;
     }
 
-    /**
-     * 获取随机诗词
-     */
-    public Poem getRandomPoem() {
+    public Poem getRandomPoem(String excludeIds) {
+        List<String> excluded = parseExcludeIds(excludeIds);
+        int total = poemMapper.countAll();
+        if (total <= 0) {
+            return null;
+        }
+
+        if (excluded.size() >= total) {
+            excluded = Collections.emptyList();
+        }
+
+        int availableCount = total - excluded.size();
+        if (availableCount <= 0) {
+            availableCount = total;
+            excluded = Collections.emptyList();
+        }
+
+        int offset = new Random().nextInt(availableCount);
+        Poem poem = poemMapper.findRandomPoemExcluding(excluded, offset);
+        if (poem != null) {
+            return poem;
+        }
         return poemMapper.findRandomPoem();
     }
 
-    /**
-     * 根据ID获取诗词详情
-     */
     public Poem getPoemById(String id) {
         return poemMapper.findById(id);
     }
 
-    /**
-     * 获取诗词列表（支持分页、筛选）
-     */
     public PageResult<Poem> getPoemList(Integer page, Integer pageSize, String keyword, String dynasty, String tag) {
         int offset = (page - 1) * pageSize;
-        
+
         List<Poem> list = poemMapper.searchPoems(keyword, dynasty, offset, pageSize);
         Long total = poemMapper.countSearchPoems(keyword, dynasty);
-        
-        // 标签筛选（内存中过滤）
+
         if (tag != null && !tag.isEmpty()) {
             list.removeIf(poem -> !hasTag(poem, tag));
         }
-        
+
         return new PageResult<>(list, total, page, pageSize);
     }
 
-    /**
-     * 搜索诗词
-     */
     public PageResult<Poem> searchPoems(String keyword, Integer page, Integer pageSize) {
         return getPoemList(page, pageSize, keyword, null, null);
     }
 
-    /**
-     * 检查诗词是否包含指定标签
-     */
+    @PostConstruct
+    public void initMockData() {
+        try {
+            if (poemMapper.countAll() > 0) {
+                System.out.println("数据库已有诗词数据，跳过初始化");
+                return;
+            }
+
+            System.out.println("开始初始化诗词数据...");
+            insertMockPoems();
+            System.out.println("初始化完成，共添加 5 首诗词");
+        } catch (Exception e) {
+            System.err.println("诗词数据初始化失败（不影响应用启动）: " + e.getMessage());
+        }
+    }
+
+    @Async
+    @EventListener(ApplicationReadyEvent.class)
+    public void sanitizePoemsAsync() {
+        try {
+            int total = poemMapper.countAll();
+            if (total <= 0) {
+                return;
+            }
+
+            int removedCount = 0;
+            int offset = 0;
+            while (true) {
+                List<Poem> batch = poemMapper.findScanPage(offset, CLEAN_BATCH_SIZE);
+                if (batch == null || batch.isEmpty()) {
+                    break;
+                }
+
+                int removedInBatch = 0;
+                for (Poem poem : batch) {
+                    if (!isInvalidPoem(poem)) {
+                        continue;
+                    }
+                    removePoemSafely(poem.getId());
+                    removedCount++;
+                    removedInBatch++;
+                }
+
+                if (removedInBatch == 0) {
+                    offset += batch.size();
+                }
+            }
+
+            if (removedCount > 0) {
+                System.out.println("后台清理完成，已删除异常诗词 " + removedCount + " 首");
+                if (poemMapper.countAll() == 0) {
+                    insertMockPoems();
+                    System.out.println("清理后数据为空，已重新初始化默认诗词");
+                }
+            }
+        } catch (Exception e) {
+            System.err.println("后台清理异常诗词失败（不影响应用运行）: " + e.getMessage());
+        }
+    }
+
+    private void insertMockPoems() {
+        List<Poem> mockPoems = Arrays.asList(
+                createPoem("春晓", "唐", "孟浩然",
+                        "[\"春眠不觉晓，\", \"处处闻啼鸟。\", \"夜来风雨声，\", \"花落知多少。\"]",
+                        "春天的夜晚睡得很香甜，不知不觉天就亮了。醒来时到处都能听到鸟儿的啼叫声。回想起昨天夜里的风雨声，不知道有多少花儿被打落了。",
+                        "①晓：天亮。②闻：听到。③啼鸟：鸟啼，鸟儿鸣叫。",
+                        "这首诗描写了春天早晨的景色，表达了诗人对春天的喜爱之情。全诗语言清新自然，意境优美，是描写春景的名篇。",
+                        "[\"春天\", \"写景\", \"田园\"]"),
+
+                createPoem("静夜思", "唐", "李白",
+                        "[\"床前明月光，\", \"疑是地上霜。\", \"举头望明月，\", \"低头思故乡。\"]",
+                        "明亮的月光洒在床前，好像地上铺了一层白霜。我抬头望着天上的明月，不由得低头思念起故乡来。",
+                        "①疑：怀疑。②举头：抬头。",
+                        "这首诗写的是在寂静的月夜思念家乡的感受。诗的前两句写景，后两句抒情，语言朴素而感情真挚，是千古传诵的思乡名篇。",
+                        "[\"思乡\", \"月亮\", \"抒情\"]"),
+
+                createPoem("登鹳雀楼", "唐", "王之涣",
+                        "[\"白日依山尽，\", \"黄河入海流。\", \"欲穷千里目，\", \"更上一层楼。\"]",
+                        "夕阳依傍着西山慢慢落下，滔滔黄河朝着东海汹涌奔流。若想把千里的风光景物看够，那就要登上更高的一层城楼。",
+                        "①鹳雀楼：旧址在今山西永济县。②穷：尽，使达到极点。",
+                        "这首诗写诗人在登高望远中表现出来的不凡的胸襟抱负，反映了盛唐时期人们积极向上的进取精神。后两句富含哲理，成为千古名句。",
+                        "[\"哲理\", \"山水\", \"励志\"]"),
+
+                createPoem("江雪", "唐", "柳宗元",
+                        "[\"千山鸟飞绝，\", \"万径人踪灭。\", \"孤舟蓑笠翁，\", \"独钓寒江雪。\"]",
+                        "所有的山上，飞鸟的身影已经绝迹，所有的小路，人的踪迹也没有了。江面孤舟上，一位披戴着蓑笠的老翁，独自在大雪覆盖的寒冷江面上垂钓。",
+                        "①绝：无，没有。②万径：虚指，指千万条路。③蓑笠：蓑衣和斗笠。",
+                        "这首诗描绘了一幅寄兴高洁、寓意丰富的寒江独钓图。诗中“孤舟蓑笠翁”的形象，正是诗人清高孤傲、不愿与世俗同流合污的性格写照。",
+                        "[\"冬天\", \"写景\", \"孤独\"]"),
+
+                createPoem("水调歌头", "宋", "苏轼",
+                        "[\"明月几时有？把酒问青天。\", \"不知天上宫阙，今夕是何年。\", \"我欲乘风归去，又恐琼楼玉宇，\", \"高处不胜寒。\", \"起舞弄清影，何似在人间。\", \"转朱阁，低绮户，照无眠。\", \"不应有恨，何事长向别时圆？\", \"人有悲欢离合，月有阴晴圆缺，\", \"此事古难全。\", \"但愿人长久，千里共婵娟。\"]",
+                        "明月从什么时候才开始出现的？我端起酒杯遥问苍天。不知道在天上的宫殿，今天晚上是何年何月。我想要乘着清风回到天上，又恐怕在美玉砌成的楼宇，受不住高耸九天的寒冷。翩翩起舞玩赏着月下清影，哪像是在人间。月儿转过朱红色的楼阁，低低地挂在雕花的窗户上，照着没有睡意的人。明月不该对人们有什么怨恨吧，为什么偏在人们离别时才圆呢？人有悲欢离合的变迁，月有阴晴圆缺的转换，这种事自古来难以周全。只希望这世上所有人的亲人能平安健康，即便相隔千里，也能共享这美好的月光。",
+                        "①宫阙：宫殿。②归去：回到天上去。③琼楼玉宇：美玉砌成的楼宇。④婵娟：指月亮。",
+                        "这首词是中秋望月怀人之作，表达了对胞弟苏辙的无限思念。词人运用形象的描绘和浪漫主义的想象，紧紧围绕中秋之月展开描写、抒情和议论，从天上与人间、月与人、空间与时间这些相联系的范畴进行思考，把人世间的悲欢离合之情纳入对宇宙人生的哲理性追寻之中。",
+                        "[\"中秋\", \"月亮\", \"哲理\", \"豪放\"]")
+        );
+
+        for (Poem poem : mockPoems) {
+            poemMapper.insert(poem);
+        }
+    }
+
+    private void removePoemSafely(String poemId) {
+        if (poemId == null || poemId.trim().isEmpty()) {
+            return;
+        }
+        dailyPoemMapper.deleteByPoemId(poemId);
+        poemMapper.deleteById(poemId);
+    }
+
     private boolean hasTag(Poem poem, String tag) {
         if (poem.getTags() == null || poem.getTags().isEmpty()) {
             return false;
@@ -103,113 +223,95 @@ public class PoemService {
         return poem.getTags().contains(tag);
     }
 
-    /**
-     * 生成唯一ID
-     */
     private String generateId() {
-        return "poem_" + System.currentTimeMillis() + "_" + 
-               UUID.randomUUID().toString().substring(0, 8);
+        return "poem_" + System.currentTimeMillis() + "_" +
+                UUID.randomUUID().toString().substring(0, 8);
     }
 
-    /**
-     * 初始化模拟数据（启动时清除乱码数据并重新插入）
-     */
-    @PostConstruct
-    public void initMockData() {
-        try {
-        List<Poem> existing = poemMapper.findAll();
+    private List<String> parseExcludeIds(String excludeIds) {
+        if (excludeIds == null || excludeIds.trim().isEmpty()) {
+            return Collections.emptyList();
+        }
 
-        // 检测乱码数据：标题包含非正常中文字符视为乱码
-        boolean hasCorrupted = false;
-        for (Poem poem : existing) {
-            if (isCorrupted(poem)) {
-                hasCorrupted = true;
-                break;
+        String[] parts = excludeIds.split(",");
+        List<String> result = new ArrayList<>();
+        for (String part : parts) {
+            if (part == null) {
+                continue;
+            }
+            String value = part.trim();
+            if (!value.isEmpty() && !result.contains(value)) {
+                result.add(value);
             }
         }
-
-        if (hasCorrupted) {
-            System.out.println("\u68C0\u6D4B\u5230\u4E71\u7801\u6570\u636E\uFF0C\u6E05\u9664\u5168\u90E8\u8BD7\u8BCD\u5E76\u91CD\u65B0\u521D\u59CB\u5316...");
-            poemMapper.deleteAll();
-            existing = Collections.emptyList();
-        }
-
-        if (!existing.isEmpty()) {
-            System.out.println("\u6570\u636E\u5E93\u5DF2\u6709 " + existing.size() + " \u9996\u8BD7\u8BCD\uFF0C\u8DF3\u8FC7\u521D\u59CB\u5316");
-            return;
-        }
-        
-        System.out.println("\u5F00\u59CB\u521D\u59CB\u5316\u8BD7\u8BCD\u6570\u636E...");
-        
-        List<Poem> mockPoems = Arrays.asList(
-            createPoem("\u6625\u6653", "\u5510", "\u5B5F\u6D69\u7136", 
-                "[\"\u6625\u7720\u4E0D\u89C9\u6653\uFF0C\", \"\u5904\u5904\u95FB\u557C\u9E1F\u3002\", \"\u591C\u6765\u98CE\u96E8\u58F0\uFF0C\", \"\u82B1\u843D\u77E5\u591A\u5C11\u3002\"]",
-                "\u6625\u5929\u7684\u591C\u665A\u7761\u5F97\u5F88\u9999\u751C\uFF0C\u4E0D\u77E5\u4E0D\u89C9\u5929\u5C31\u4EAE\u4E86\u3002\u9192\u6765\u65F6\u5230\u5904\u90FD\u80FD\u542C\u5230\u9E1F\u513F\u7684\u557C\u53EB\u58F0\u3002\u56DE\u60F3\u8D77\u6628\u5929\u591C\u91CC\u7684\u98CE\u96E8\u58F0\uFF0C\u4E0D\u77E5\u9053\u6709\u591A\u5C11\u82B1\u513F\u88AB\u6253\u843D\u4E86\u3002",
-                "\u2460\u6653\uFF1A\u5929\u4EAE\u3002\u2461\u95FB\uFF1A\u542C\u5230\u3002\u2462\u557C\u9E1F\uFF1A\u9E1F\u557C\uFF0C\u9E1F\u513F\u9E23\u53EB\u3002",
-                "\u8FD9\u9996\u8BD7\u63CF\u5199\u4E86\u6625\u5929\u65E9\u6668\u7684\u666F\u8272\uFF0C\u8868\u8FBE\u4E86\u8BD7\u4EBA\u5BF9\u6625\u5929\u7684\u559C\u7231\u4E4B\u60C5\u3002\u5168\u8BD7\u8BED\u8A00\u6E05\u65B0\u81EA\u7136\uFF0C\u610F\u5883\u4F18\u7F8E\uFF0C\u662F\u63CF\u5199\u6625\u666F\u7684\u540D\u7BC7\u3002",
-                "[\"\u6625\u5929\", \"\u5199\u666F\", \"\u7530\u56ED\"]"),
-                
-            createPoem("\u9759\u591C\u601D", "\u5510", "\u674E\u767D",
-                "[\"\u5E8A\u524D\u660E\u6708\u5149\uFF0C\", \"\u7591\u662F\u5730\u4E0A\u971C\u3002\", \"\u4E3E\u5934\u671B\u660E\u6708\uFF0C\", \"\u4F4E\u5934\u601D\u6545\u4E61\u3002\"]",
-                "\u660E\u4EAE\u7684\u6708\u5149\u6D12\u5728\u5E8A\u524D\uFF0C\u597D\u50CF\u5730\u4E0A\u94FA\u4E86\u4E00\u5C42\u767D\u971C\u3002\u6211\u62AC\u5934\u671B\u7740\u5929\u4E0A\u7684\u660E\u6708\uFF0C\u4E0D\u7531\u5F97\u4F4E\u5934\u601D\u5FF5\u8D77\u6545\u4E61\u6765\u3002",
-                "\u2460\u7591\uFF1A\u6000\u7591\u3002\u2461\u4E3E\u5934\uFF1A\u62AC\u5934\u3002",
-                "\u8FD9\u9996\u8BD7\u5199\u7684\u662F\u5728\u5BC2\u9759\u7684\u6708\u591C\u601D\u5FF5\u5BB6\u4E61\u7684\u611F\u53D7\u3002\u8BD7\u7684\u524D\u4E24\u53E5\u5199\u666F\uFF0C\u540E\u4E24\u53E5\u6292\u60C5\uFF0C\u8BED\u8A00\u6734\u7D20\u800C\u611F\u60C5\u771F\u631A\uFF0C\u662F\u5343\u53E4\u4F20\u8BF5\u7684\u601D\u4E61\u540D\u7BC7\u3002",
-                "[\"\u601D\u4E61\", \"\u6708\u4EAE\", \"\u6292\u60C5\"]"),
-                
-            createPoem("\u767B\u9E73\u96C0\u697C", "\u5510", "\u738B\u4E4B\u6DA3",
-                "[\"\u767D\u65E5\u4F9D\u5C71\u5C3D\uFF0C\", \"\u9EC4\u6CB3\u5165\u6D77\u6D41\u3002\", \"\u6B32\u7A77\u5343\u91CC\u76EE\uFF0C\", \"\u66F4\u4E0A\u4E00\u5C42\u697C\u3002\"]",
-                "\u5915\u9633\u4F9D\u508D\u7740\u897F\u5C71\u6162\u6162\u843D\u4E0B\uFF0C\u6ED4\u6ED4\u9EC4\u6CB3\u671D\u7740\u4E1C\u6D77\u6C79\u6D8C\u5954\u6D41\u3002\u82E5\u60F3\u628A\u5343\u91CC\u7684\u98CE\u5149\u666F\u7269\u770B\u591F\uFF0C\u90A3\u5C31\u8981\u767B\u4E0A\u66F4\u9AD8\u7684\u4E00\u5C42\u57CE\u697C\u3002",
-                "\u2460\u9E73\u96C0\u697C\uFF1A\u65E7\u5740\u5728\u4ECA\u5C71\u897F\u6C38\u6D4E\u53BF\u3002\u2461\u7A77\uFF1A\u5C3D\uFF0C\u4F7F\u8FBE\u5230\u6781\u70B9\u3002",
-                "\u8FD9\u9996\u8BD7\u5199\u8BD7\u4EBA\u5728\u767B\u9AD8\u671B\u8FDC\u4E2D\u8868\u73B0\u51FA\u6765\u7684\u4E0D\u51E1\u7684\u80F8\u895F\u62B1\u8D1F\uFF0C\u53CD\u6620\u4E86\u76DB\u5510\u65F6\u671F\u4EBA\u4EEC\u79EF\u6781\u5411\u4E0A\u7684\u8FDB\u53D6\u7CBE\u795E\u3002\u540E\u4E24\u53E5\u5BCC\u542B\u54F2\u7406\uFF0C\u6210\u4E3A\u5343\u53E4\u540D\u53E5\u3002",
-                "[\"\u54F2\u7406\", \"\u5C71\u6C34\", \"\u52B1\u5FD7\"]"),
-                
-            createPoem("\u6C5F\u96EA", "\u5510", "\u67F3\u5B97\u5143",
-                "[\"\u5343\u5C71\u9E1F\u98DE\u7EDD\uFF0C\", \"\u4E07\u5F84\u4EBA\u8E2A\u706D\u3002\", \"\u5B64\u821F\u84D1\u7B20\u7FC1\uFF0C\", \"\u72EC\u9493\u5BD2\u6C5F\u96EA\u3002\"]",
-                "\u6240\u6709\u7684\u5C71\u4E0A\uFF0C\u98DE\u9E1F\u7684\u8EAB\u5F71\u5DF2\u7ECF\u7EDD\u8FF9\uFF0C\u6240\u6709\u7684\u5C0F\u8DEF\uFF0C\u4EBA\u7684\u8E2A\u8FF9\u4E5F\u6CA1\u6709\u4E86\u3002\u6C5F\u9762\u5B64\u821F\u4E0A\uFF0C\u4E00\u4F4D\u62AB\u6234\u7740\u84D1\u7B20\u7684\u8001\u7FC1\uFF0C\u72EC\u81EA\u5728\u5927\u96EA\u8986\u76D6\u7684\u5BD2\u51B7\u6C5F\u9762\u4E0A\u5782\u9493\u3002",
-                "\u2460\u7EDD\uFF1A\u65E0\uFF0C\u6CA1\u6709\u3002\u2461\u4E07\u5F84\uFF1A\u865A\u6307\uFF0C\u6307\u5343\u4E07\u6761\u8DEF\u3002\u2462\u84D1\u7B20\uFF1A\u84D1\u8863\u548C\u6597\u7B20\u3002",
-                "\u8FD9\u9996\u8BD7\u63CF\u7ED8\u4E86\u4E00\u5E45\u5BC4\u5174\u9AD8\u6D01\u3001\u5BD3\u610F\u4E30\u5BCC\u7684\u5BD2\u6C5F\u72EC\u9493\u56FE\u3002\u8BD7\u4E2D\"\u5B64\u821F\u84D1\u7B20\u7FC1\"\u7684\u5F62\u8C61\uFF0C\u6B63\u662F\u8BD7\u4EBA\u6E05\u9AD8\u5B64\u50B2\u3001\u4E0D\u613F\u4E0E\u4E16\u4FD7\u540C\u6D41\u5408\u6C61\u7684\u6027\u683C\u5199\u7167\u3002",
-                "[\"\u51AC\u5929\", \"\u5199\u666F\", \"\u5B64\u72EC\"]"),
-                
-            createPoem("\u6C34\u8C03\u6B4C\u5934", "\u5B8B", "\u82CF\u8F7C",
-                "[\"\u660E\u6708\u51E0\u65F6\u6709\uFF1F\u628A\u9152\u95EE\u9752\u5929\u3002\", \"\u4E0D\u77E5\u5929\u4E0A\u5BAB\u9619\uFF0C\u4ECA\u5915\u662F\u4F55\u5E74\u3002\", \"\u6211\u6B32\u4E58\u98CE\u5F52\u53BB\uFF0C\u53C8\u6050\u743C\u697C\u7389\u5B87\uFF0C\", \"\u9AD8\u5904\u4E0D\u80DC\u5BD2\u3002\", \"\u8D77\u821E\u5F04\u6E05\u5F71\uFF0C\u4F55\u4F3C\u5728\u4EBA\u95F4\u3002\", \"\u8F6C\u6731\u9601\uFF0C\u4F4E\u7EEE\u6237\uFF0C\u7167\u65E0\u7720\u3002\", \"\u4E0D\u5E94\u6709\u6068\uFF0C\u4F55\u4E8B\u957F\u5411\u522B\u65F6\u5706\uFF1F\", \"\u4EBA\u6709\u60B2\u6B22\u79BB\u5408\uFF0C\u6708\u6709\u9634\u6674\u5706\u7F3A\uFF0C\", \"\u6B64\u4E8B\u53E4\u96BE\u5168\u3002\", \"\u4F46\u613F\u4EBA\u957F\u4E45\uFF0C\u5343\u91CC\u5171\u5A75\u5A1F\u3002\"]",
-                "\u660E\u6708\u4ECE\u4EC0\u4E48\u65F6\u5019\u624D\u5F00\u59CB\u51FA\u73B0\u7684\uFF1F\u6211\u7AEF\u8D77\u9152\u676F\u9065\u95EE\u82CD\u5929\u3002\u4E0D\u77E5\u9053\u5728\u5929\u4E0A\u7684\u5BAB\u6BBF\uFF0C\u4ECA\u5929\u665A\u4E0A\u662F\u4F55\u5E74\u4F55\u6708\u3002\u6211\u60F3\u8981\u4E58\u5FA1\u6E05\u98CE\u56DE\u5230\u5929\u4E0A\uFF0C\u53C8\u6050\u6015\u5728\u7F8E\u7389\u780C\u6210\u7684\u697C\u5B87\uFF0C\u53D7\u4E0D\u4F4F\u9AD8\u8038\u4E5D\u5929\u7684\u5BD2\u51B7\u3002\u7FE9\u7FE9\u8D77\u821E\u73A9\u8D4F\u7740\u6708\u4E0B\u6E05\u5F71\uFF0C\u54EA\u50CF\u662F\u5728\u4EBA\u95F4\u3002\u6708\u513F\u8F6C\u8FC7\u6731\u7EA2\u8272\u7684\u697C\u9601\uFF0C\u4F4E\u4F4E\u5730\u6302\u5728\u96D5\u82B1\u7684\u7A97\u6237\u4E0A\uFF0C\u7167\u7740\u6CA1\u6709\u7761\u610F\u7684\u4EBA\u3002\u660E\u6708\u4E0D\u8BE5\u5BF9\u4EBA\u4EEC\u6709\u4EC0\u4E48\u6028\u6068\u5427\uFF0C\u4E3A\u4EC0\u4E48\u504F\u5728\u4EBA\u4EEC\u79BB\u522B\u65F6\u624D\u5706\u5462\uFF1F\u4EBA\u6709\u60B2\u6B22\u79BB\u5408\u7684\u53D8\u8FC1\uFF0C\u6708\u6709\u9634\u6674\u5706\u7F3A\u7684\u8F6C\u6362\uFF0C\u8FD9\u79CD\u4E8B\u81EA\u53E4\u6765\u96BE\u4EE5\u5468\u5168\u3002\u53EA\u5E0C\u671B\u8FD9\u4E16\u4E0A\u6240\u6709\u4EBA\u7684\u4EB2\u4EBA\u80FD\u5E73\u5B89\u5065\u5EB7\uFF0C\u5373\u4FBF\u76F8\u9694\u5343\u91CC\uFF0C\u4E5F\u80FD\u5171\u4EAB\u8FD9\u7F8E\u597D\u7684\u6708\u5149\u3002",
-                "\u2460\u5BAB\u9619\uFF1A\u5BAB\u6BBF\u3002\u2461\u5F52\u53BB\uFF1A\u56DE\u5230\u5929\u4E0A\u53BB\u3002\u2462\u743C\u697C\u7389\u5B87\uFF1A\u7F8E\u7389\u780C\u6210\u7684\u697C\u5B87\u3002\u2463\u5A75\u5A1F\uFF1A\u6307\u6708\u4EAE\u3002",
-                "\u8FD9\u9996\u8BCD\u662F\u4E2D\u79CB\u671B\u6708\u6000\u4EBA\u4E4B\u4F5C\uFF0C\u8868\u8FBE\u4E86\u5BF9\u80DE\u5F1F\u82CF\u8F99\u7684\u65E0\u9650\u601D\u5FF5\u3002\u8BCD\u4EBA\u8FD0\u7528\u5F62\u8C61\u7684\u63CF\u7ED8\u548C\u6D6A\u6F2B\u4E3B\u4E49\u7684\u60F3\u8C61\uFF0C\u7D27\u7D27\u56F4\u7ED5\u4E2D\u79CB\u4E4B\u6708\u5C55\u5F00\u63CF\u5199\u3001\u6292\u60C5\u548C\u8BAE\u8BBA\uFF0C\u4ECE\u5929\u4E0A\u4E0E\u4EBA\u95F4\u3001\u6708\u4E0E\u4EBA\u3001\u7A7A\u95F4\u4E0E\u65F6\u95F4\u8FD9\u4E9B\u76F8\u8054\u7CFB\u7684\u8303\u7574\u8FDB\u884C\u601D\u8003\uFF0C\u628A\u4EBA\u4E16\u95F4\u7684\u60B2\u6B22\u79BB\u5408\u4E4B\u60C5\u7EB3\u5165\u5BF9\u5B87\u5B99\u4EBA\u751F\u7684\u54F2\u7406\u6027\u8FFD\u5BFB\u4E4B\u4E2D\u3002",
-                "[\"\u4E2D\u79CB\", \"\u6708\u4EAE\", \"\u54F2\u7406\", \"\u8C6A\u653E\"]")
-        );
-        
-        for (Poem poem : mockPoems) {
-            poemMapper.insert(poem);
-        }
-        
-        System.out.println("\u521D\u59CB\u5316\u5B8C\u6210\uFF0C\u5171\u6DFB\u52A0 " + mockPoems.size() + " \u9996\u8BD7\u8BCD");
-        } catch (Exception e) {
-            System.err.println("\u8BD7\u8BCD\u6570\u636E\u521D\u59CB\u5316\u5931\u8D25\uFF08\u4E0D\u5F71\u54CD\u5E94\u7528\u542F\u52A8\uFF09: " + e.getMessage());
-        }
+        return result;
     }
 
-    /**
-     * 检测诗词数据是否乱码
-     * 正常的标题应全为常见CJK字符和标点，若包含大量非CJK字符则视为乱码
-     */
-    private boolean isCorrupted(Poem poem) {
-        String title = poem.getTitle();
-        if (title == null || title.isEmpty()) return true;
-        int total = title.length();
+    private boolean isInvalidPoem(Poem poem) {
+        if (poem == null) {
+            return true;
+        }
+        if (!hasMeaningfulText(poem.getId())) {
+            return true;
+        }
+        if (!hasMeaningfulText(poem.getTitle()) || isCorruptedText(poem.getTitle())) {
+            return true;
+        }
+        if (!hasMeaningfulText(poem.getAuthor()) || isCorruptedText(poem.getAuthor())) {
+            return true;
+        }
+        if (!hasMeaningfulText(poem.getDynasty()) || isCorruptedText(poem.getDynasty())) {
+            return true;
+        }
+        if (!hasMeaningfulText(poem.getContent()) || isCorruptedText(poem.getContent())) {
+            return true;
+        }
+        return false;
+    }
+
+    private boolean hasMeaningfulText(String value) {
+        return value != null && !value.trim().isEmpty() && !"null".equalsIgnoreCase(value.trim());
+    }
+
+    private boolean isCorruptedText(String text) {
+        if (text == null) {
+            return true;
+        }
+        String normalized = text.trim();
+        if (normalized.isEmpty()) {
+            return true;
+        }
+        if (normalized.contains("�")) {
+            return true;
+        }
+
+        int total = normalized.length();
         int normal = 0;
-        for (char c : title.toCharArray()) {
-            if (c >= '\u4E00' && c <= '\u9FFF') normal++;       // CJK基本区
-            else if (c >= '\u3400' && c <= '\u4DBF') normal++;   // CJK扩展A
-            else if (c >= '\uFF00' && c <= '\uFFEF') normal++;   // 全角标点
-            else if (c >= '\u3000' && c <= '\u303F') normal++;   // CJK标点
-            else if (c >= '\u0020' && c <= '\u007E') normal++;   // ASCII
+        int suspicious = 0;
+        for (char c : normalized.toCharArray()) {
+            if (isAcceptedChar(c)) {
+                normal++;
+            } else {
+                suspicious++;
+            }
         }
-        // 标题中正常字符占比低于50%视为乱码
-        return normal < total * 0.5;
+        return suspicious > 0 && (normal < total * 0.6 || suspicious > normal);
     }
-    
+
+    private boolean isAcceptedChar(char c) {
+        return (c >= '\u4E00' && c <= '\u9FFF')
+                || (c >= '\u3400' && c <= '\u4DBF')
+                || (c >= '\uF900' && c <= '\uFAFF')
+                || (c >= '\u3000' && c <= '\u303F')
+                || (c >= '\uFF00' && c <= '\uFFEF')
+                || (c >= '\u0020' && c <= '\u007E')
+                || Character.isDigit(c)
+                || Character.isLetter(c)
+                || Character.isWhitespace(c);
+    }
+
     private Poem createPoem(String title, String dynasty, String author, String content,
-                           String translation, String annotation, String appreciation, String tags) {
+                            String translation, String annotation, String appreciation, String tags) {
         Poem poem = new Poem();
         poem.setId(generateId());
         poem.setTitle(title);

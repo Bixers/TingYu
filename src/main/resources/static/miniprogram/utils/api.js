@@ -1,10 +1,5 @@
-// utils/api.js - 统一API请求封装
-
 const app = getApp()
 
-/**
- * 通用请求方法
- */
 function request(path, method = 'GET', data = null) {
   return new Promise((resolve, reject) => {
     const options = {
@@ -33,9 +28,6 @@ function request(path, method = 'GET', data = null) {
   })
 }
 
-/**
- * 构建查询参数字符串
- */
 function buildQuery(params) {
   const parts = []
   for (const key in params) {
@@ -43,16 +35,19 @@ function buildQuery(params) {
       parts.push(`${key}=${encodeURIComponent(params[key])}`)
     }
   }
-  return parts.length > 0 ? '?' + parts.join('&') : ''
+  return parts.length > 0 ? `?${parts.join('&')}` : ''
 }
 
-// 诗词相关
 function getDailyPoem() {
   return request('/api/poems/daily')
 }
 
-function getRandomPoem() {
-  return request('/api/poems/random')
+function getRandomPoem(excludeIds) {
+  const query = buildQuery({
+    excludeIds: excludeIds && excludeIds.length ? excludeIds.join(',') : '',
+    t: Date.now()
+  })
+  return request(`/api/poems/random${query}`)
 }
 
 function getPoemDetail(id) {
@@ -64,7 +59,6 @@ function getPoemList(params) {
   return request(`/api/poems/list${query}`)
 }
 
-// 标签相关
 function getTagsGrouped() {
   return request('/api/tags/grouped')
 }
@@ -73,7 +67,6 @@ function getAllTags() {
   return request('/api/tags')
 }
 
-// 元数据相关
 function getDynasties() {
   return request('/api/meta/dynasties')
 }
@@ -83,17 +76,14 @@ function getAuthors(dynasty) {
   return request(`/api/meta/authors${query}`)
 }
 
-// 作者详情
 function getAuthorByName(name) {
   return request(`/api/authors/by-name?name=${encodeURIComponent(name)}`)
 }
 
-// 拼音转换
 function getPinyin(text) {
   return request('/api/tools/pinyin', 'POST', { text: text })
 }
 
-// 用户相关
 function getUserProfile() {
   return request('/api/user/profile')
 }
@@ -102,31 +92,24 @@ function registerUser(data) {
   return request('/api/user/register', 'POST', data)
 }
 
-/**
- * 解析诗词内容为行数组
- */
 function parseContent(content) {
   if (!content) return []
   content = content.replace(/\r/g, '')
   try {
     const parsed = JSON.parse(content)
     if (Array.isArray(parsed)) return parsed
-    // JSON字符串类型，按换行拆分
-    var str = String(parsed)
+    const str = String(parsed)
     if (str.indexOf('\n') !== -1) {
       return str.split('\n').filter(function(s) { return s.trim() })
     }
     return [str]
   } catch (e) {
-    return content.split(/[，。！？；：、\n]/).filter(s => s.trim()).map((line, index, arr) => {
-      return line
+    return content.split(/[，。！？；：、】【\n]/).filter(function(s) {
+      return s.trim()
     })
   }
 }
 
-/**
- * 解析标签JSON为数组
- */
 function parseTags(tags) {
   if (!tags) return []
   if (Array.isArray(tags)) return tags

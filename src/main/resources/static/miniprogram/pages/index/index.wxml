@@ -14,6 +14,7 @@
         <text class="poem-meta" wx:if="{{currentPoem}}">
           {{currentPoem.dynasty}} · {{currentPoem.author}}
         </text>
+        <text class="poem-tagline" wx:if="{{poemSourceLabel}}">{{poemSourceLabel}}</text>
         <view class="poem-lines" wx:if="{{contentLines.length > 0}}">
           <block wx:for="{{contentLines}}" wx:key="index">
             <text class="poem-line">{{item}}</text>

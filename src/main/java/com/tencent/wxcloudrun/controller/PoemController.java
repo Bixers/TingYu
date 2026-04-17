@@ -17,9 +17,6 @@ public class PoemController {
     @Autowired
     private PoemService poemService;
 
-    /**
-     * 获取每日诗词
-     */
     @GetMapping("/daily")
     public ApiResponse<Poem> getDailyPoem() {
         try {
@@ -29,29 +26,23 @@ public class PoemController {
             }
             return ApiResponse.success(poem);
         } catch (Exception e) {
-            return ApiResponse.error("获取失败：" + e.getMessage());
+            return ApiResponse.error("获取失败: " + e.getMessage());
         }
     }
 
-    /**
-     * 获取随机诗词
-     */
     @GetMapping("/random")
-    public ApiResponse<Poem> getRandomPoem() {
+    public ApiResponse<Poem> getRandomPoem(@RequestParam(required = false) String excludeIds) {
         try {
-            Poem poem = poemService.getRandomPoem();
+            Poem poem = poemService.getRandomPoem(excludeIds);
             if (poem == null) {
                 return ApiResponse.notFound("暂无诗词数据");
             }
             return ApiResponse.success(poem);
         } catch (Exception e) {
-            return ApiResponse.error("获取失败：" + e.getMessage());
+            return ApiResponse.error("获取失败: " + e.getMessage());
         }
     }
 
-    /**
-     * 根据ID获取诗词详情
-     */
     @GetMapping("/{id}")
     public ApiResponse<Poem> getPoemById(@PathVariable String id) {
         try {
@@ -61,13 +52,10 @@ public class PoemController {
             }
             return ApiResponse.success(poem);
         } catch (Exception e) {
-            return ApiResponse.error("获取失败：" + e.getMessage());
+            return ApiResponse.error("获取失败: " + e.getMessage());
         }
     }
 
-    /**
-     * 获取诗词列表（支持分页、筛选）
-     */
     @GetMapping("/list")
     public ApiResponse<PageResult<Poem>> getPoemList(
             @RequestParam(defaultValue = "1") Integer page,
@@ -79,24 +67,21 @@ public class PoemController {
             PageResult<Poem> result = poemService.getPoemList(page, pageSize, keyword, dynasty, tag);
             return ApiResponse.success(result);
         } catch (Exception e) {
-            return ApiResponse.error("获取失败：" + e.getMessage());
+            return ApiResponse.error("获取失败: " + e.getMessage());
         }
     }
 
-    /**
-     * 搜索诗词
-     */
     @PostMapping("/search")
     public ApiResponse<PageResult<Poem>> searchPoems(@RequestBody Map<String, Object> params) {
         try {
             String keyword = (String) params.get("keyword");
             Integer page = params.get("page") != null ? (Integer) params.get("page") : 1;
             Integer pageSize = params.get("pageSize") != null ? (Integer) params.get("pageSize") : 10;
-            
+
             PageResult<Poem> result = poemService.searchPoems(keyword, page, pageSize);
             return ApiResponse.success(result);
         } catch (Exception e) {
-            return ApiResponse.error("搜索失败：" + e.getMessage());
+            return ApiResponse.error("搜索失败: " + e.getMessage());
         }
     }
 }

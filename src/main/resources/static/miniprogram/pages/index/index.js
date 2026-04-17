@@ -1,4 +1,3 @@
-// pages/index/index.js
 const api = require('../../utils/api')
 const cc = require('../../utils/chinese-convert')
 
@@ -8,15 +7,17 @@ Page({
     contentLines: [],
     loading: false,
     animating: false,
-    useTraditional: false
+    useTraditional: false,
+    poemSourceLabel: ''
   },
 
   onLoad() {
-    this.loadRandomPoem()
+    this._recentPoemIds = []
+    this.loadHomePoem()
   },
 
   onShow() {
-    var useTraditional = getApp().globalData.useTraditional
+    const useTraditional = getApp().globalData.useTraditional
     if (useTraditional !== this.data.useTraditional) {
       this.setData({ useTraditional: useTraditional })
       this.applyConversion()
@@ -24,57 +25,87 @@ Page({
   },
 
   onPullDownRefresh() {
-    this.loadRandomPoem()
+    this._recentPoemIds = []
+    this.loadHomePoem()
     setTimeout(() => {
       wx.stopPullDownRefresh()
     }, 1000)
   },
 
-  // 切换繁简
   toggleChinese() {
-    var useTraditional = !this.data.useTraditional
+    const useTraditional = !this.data.useTraditional
     this.setData({ useTraditional: useTraditional })
     getApp().globalData.useTraditional = useTraditional
     wx.setStorageSync('useTraditional', useTraditional)
     this.applyConversion()
   },
 
-  // 应用繁简转换到当前显示数据
   applyConversion() {
     if (!this._rawPoem) return
-    var poem = this._rawPoem
-    var useT = this.data.useTraditional
-    var displayPoem = {
+    const poem = this._rawPoem
+    const useT = this.data.useTraditional
+    const displayPoem = {
       id: poem.id,
       title: cc.convert(poem.title, useT),
       author: cc.convert(poem.author, useT),
       dynasty: cc.convert(poem.dynasty, useT),
       content: poem.content
     }
-    var rawLines = api.parseContent(poem.content)
-    var contentLines = rawLines.map(function(line) { return cc.convert(line, useT) })
+    const rawLines = api.parseContent(poem.content)
+    const contentLines = rawLines.map(function(line) {
+      return cc.convert(line, useT)
+    })
     this.setData({ currentPoem: displayPoem, contentLines: contentLines })
   },
 
-  // 加载随机诗词
-  loadRandomPoem() {
+  rememberPoem(poemId) {
+    if (!poemId) return
+    let recent = this._recentPoemIds || []
+    recent = recent.filter(function(id) {
+      return id !== poemId
+    })
+    recent.unshift(poemId)
+    if (recent.length > 12) {
+      recent = recent.slice(0, 12)
+    }
+    this._recentPoemIds = recent
+  },
+
+  updateDisplayedPoem(poem, sourceLabel) {
+    this._rawPoem = poem
+    this.rememberPoem(poem.id)
+    const useT = this.data.useTraditional
+    const contentLines = api.parseContent(poem.content).map(function(line) {
+      return cc.convert(line, useT)
+    })
+    const displayPoem = {
+      id: poem.id,
+      title: cc.convert(poem.title, useT),
+      author: cc.convert(poem.author, useT),
+      dynasty: cc.convert(poem.dynasty, useT),
+      content: poem.content
+    }
+    this.setData({
+      currentPoem: displayPoem,
+      contentLines: contentLines,
+      poemSourceLabel: sourceLabel || '',
+      animating: true
+    })
+    setTimeout(() => this.setData({ animating: false }), 500)
+  },
+
+  loadHomePoem() {
     if (this.data.loading) return
     this.setData({ loading: true })
 
-    api.getRandomPoem().then(poem => {
-      this._rawPoem = poem
-      var useT = this.data.useTraditional
-      var contentLines = api.parseContent(poem.content).map(function(l) { return cc.convert(l, useT) })
-      var displayPoem = {
-        id: poem.id,
-        title: cc.convert(poem.title, useT),
-        author: cc.convert(poem.author, useT),
-        dynasty: cc.convert(poem.dynasty, useT),
-        content: poem.content
-      }
-      this.setData({ currentPoem: displayPoem, contentLines: contentLines, animating: true })
-      setTimeout(() => this.setData({ animating: false }), 500)
-    }).catch(err => {
+    api.getDailyPoem().then((poem) => {
+      this.updateDisplayedPoem(poem, '今日推荐')
+    }).catch((err) => {
+      console.error('加载首页诗词失败:', err)
+      return api.getRandomPoem(this._recentPoemIds || []).then((poem) => {
+        this.updateDisplayedPoem(poem, '随机诗词')
+      })
+    }).catch((err) => {
       console.error('加载失败:', err)
       wx.showToast({ title: '加载失败', icon: 'none' })
     }).finally(() => {
@@ -82,8 +113,22 @@ Page({
     })
   },
 
+  loadRandomPoem() {
+    if (this.data.loading) return
+    this.setData({ loading: true })
+
+    api.getRandomPoem(this._recentPoemIds || []).then((poem) => {
+      this.updateDisplayedPoem(poem, '随机诗词')
+    }).catch((err) => {
+      console.error('加载随机诗词失败:', err)
+      wx.showToast({ title: '加载失败', icon: 'none' })
+    }).finally(() => {
+      this.setData({ loading: false })
+    })
+  },
+
   goToDetail() {
-    const { currentPoem } = this.data
+    const currentPoem = this.data.currentPoem
     if (currentPoem) {
       wx.navigateTo({ url: `/pages/detail/index?id=${currentPoem.id}` })
     }
@@ -94,14 +139,14 @@ Page({
   },
 
   goToShare() {
-    const { currentPoem } = this.data
+    const currentPoem = this.data.currentPoem
     if (currentPoem) {
       wx.navigateTo({ url: `/pages/share/index?id=${currentPoem.id}` })
     }
   },
 
   onShareAppMessage() {
-    const { currentPoem } = this.data
+    const currentPoem = this.data.currentPoem
     return currentPoem ? {
       title: `${currentPoem.title} - ${currentPoem.author}`,
       path: `/pages/detail/index?id=${currentPoem.id}`

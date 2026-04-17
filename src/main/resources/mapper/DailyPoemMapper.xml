@@ -21,7 +21,7 @@
     </resultMap>
 
     <select id="findByDate" resultMap="DailyPoemResultMap">
-        SELECT dp.*, p.* 
+        SELECT dp.*, p.*
         FROM daily_poems dp
         LEFT JOIN poems p ON dp.poem_id = p.id
         WHERE dp.date = #{date}

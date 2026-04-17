@@ -47,8 +47,29 @@
         </where>
     </select>
 
+    <select id="findRandomPoemExcluding" resultMap="PoemResultMap">
+        SELECT * FROM poems
+        <where>
+            <if test="excludeIds != null and excludeIds.size() > 0">
+                id NOT IN
+                <foreach collection="excludeIds" item="id" open="(" separator="," close=")">
+                    #{id}
+                </foreach>
+            </if>
+        </where>
+        ORDER BY id
+        LIMIT #{offset}, 1
+    </select>
+
+    <select id="findScanPage" resultMap="PoemResultMap">
+        SELECT id, title, dynasty, author, content, annotation, appreciation, translation, tags, source, source_url, created_at, updated_at
+        FROM poems
+        ORDER BY id
+        LIMIT #{offset}, #{limit}
+    </select>
+
     <insert id="insert" parameterType="com.tencent.wxcloudrun.model.Poem">
-        INSERT INTO poems (id, title, dynasty, author, content, annotation, appreciation, 
+        INSERT INTO poems (id, title, dynasty, author, content, annotation, appreciation,
                           translation, tags, source, source_url, created_at, updated_at)
         VALUES (#{id}, #{title}, #{dynasty}, #{author}, #{content}, #{annotation}, #{appreciation},
                 #{translation}, #{tags}, #{source}, #{sourceUrl}, #{createdAt}, #{updatedAt})

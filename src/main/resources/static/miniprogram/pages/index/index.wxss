@@ -82,8 +82,18 @@
 .poem-meta {
   font-size: 28rpx;
   color: #7A8A7F;
-  margin-bottom: 48rpx;
+  margin-bottom: 20rpx;
   display: block;
+}
+
+.poem-tagline {
+  display: inline-block;
+  font-size: 22rpx;
+  color: #A07C4A;
+  background: #F7F1E7;
+  border-radius: 999rpx;
+  padding: 8rpx 20rpx;
+  margin-bottom: 32rpx;
 }
 
 .poem-lines {
