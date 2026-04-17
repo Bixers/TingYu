@@ -112,14 +112,30 @@ public class PoemService {
     }
 
     /**
-     * 初始化模拟数据
+     * 初始化模拟数据（启动时清除乱码数据并重新插入）
      */
     @PostConstruct
     public void initMockData() {
         try {
         List<Poem> existing = poemMapper.findAll();
+
+        // 检测乱码数据：标题包含非正常中文字符视为乱码
+        boolean hasCorrupted = false;
+        for (Poem poem : existing) {
+            if (isCorrupted(poem)) {
+                hasCorrupted = true;
+                break;
+            }
+        }
+
+        if (hasCorrupted) {
+            System.out.println("检测到乱码数据，清除全部诗词并重新初始化...");
+            poemMapper.deleteAll();
+            existing = Collections.emptyList();
+        }
+
         if (!existing.isEmpty()) {
-            System.out.println("数据库已有数据，跳过初始化");
+            System.out.println("数据库已有 " + existing.size() + " 首诗词，跳过初始化");
             return;
         }
         
@@ -170,6 +186,26 @@ public class PoemService {
         } catch (Exception e) {
             System.err.println("诗词数据初始化失败（不影响应用启动）: " + e.getMessage());
         }
+    }
+
+    /**
+     * 检测诗词数据是否乱码
+     * 正常的标题应全为常见CJK字符和标点，若包含大量非CJK字符则视为乱码
+     */
+    private boolean isCorrupted(Poem poem) {
+        String title = poem.getTitle();
+        if (title == null || title.isEmpty()) return true;
+        int total = title.length();
+        int normal = 0;
+        for (char c : title.toCharArray()) {
+            if (c >= '\u4E00' && c <= '\u9FFF') normal++;       // CJK基本区
+            else if (c >= '\u3400' && c <= '\u4DBF') normal++;   // CJK扩展A
+            else if (c >= '\uFF00' && c <= '\uFFEF') normal++;   // 全角标点
+            else if (c >= '\u3000' && c <= '\u303F') normal++;   // CJK标点
+            else if (c >= '\u0020' && c <= '\u007E') normal++;   // ASCII
+        }
+        // 标题中正常字符占比低于50%视为乱码
+        return normal < total * 0.5;
     }
     
     private Poem createPoem(String title, String dynasty, String author, String content,

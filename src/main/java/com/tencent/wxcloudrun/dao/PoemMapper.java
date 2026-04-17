@@ -1,6 +1,7 @@
 package com.tencent.wxcloudrun.dao;
 
 import com.tencent.wxcloudrun.model.Poem;
+import org.apache.ibatis.annotations.Delete;
 import org.apache.ibatis.annotations.Mapper;
 import org.apache.ibatis.annotations.Param;
 import org.apache.ibatis.annotations.Select;
@@ -63,6 +64,12 @@ public interface PoemMapper {
      * 删除诗词
      */
     int deleteById(String id);
+
+    /**
+     * 清空所有诗词
+     */
+    @Delete("DELETE FROM poems")
+    int deleteAll();
 
     /**
      * 朝代统计

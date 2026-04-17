@@ -12,7 +12,7 @@ Page({
   },
 
   onLoad() {
-    this.loadDailyPoem()
+    this.loadRandomPoem()
   },
 
   onShow() {
@@ -24,7 +24,7 @@ Page({
   },
 
   onPullDownRefresh() {
-    this.loadDailyPoem()
+    this.loadRandomPoem()
     setTimeout(() => {
       wx.stopPullDownRefresh()
     }, 1000)
@@ -54,31 +54,6 @@ Page({
     var rawLines = api.parseContent(poem.content)
     var contentLines = rawLines.map(function(line) { return cc.convert(line, useT) })
     this.setData({ currentPoem: displayPoem, contentLines: contentLines })
-  },
-
-  // 加载每日诗词
-  loadDailyPoem() {
-    this.setData({ loading: true })
-
-    api.getDailyPoem().then(poem => {
-      this._rawPoem = poem
-      var useT = this.data.useTraditional
-      var contentLines = api.parseContent(poem.content).map(function(l) { return cc.convert(l, useT) })
-      var displayPoem = {
-        id: poem.id,
-        title: cc.convert(poem.title, useT),
-        author: cc.convert(poem.author, useT),
-        dynasty: cc.convert(poem.dynasty, useT),
-        content: poem.content
-      }
-      this.setData({ currentPoem: displayPoem, contentLines: contentLines, animating: true })
-      setTimeout(() => this.setData({ animating: false }), 500)
-    }).catch(err => {
-      console.error('加载失败:', err)
-      wx.showToast({ title: '加载失败', icon: 'none' })
-    }).finally(() => {
-      this.setData({ loading: false })
-    })
   },
 
   // 加载随机诗词
