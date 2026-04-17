@@ -19,9 +19,33 @@
 .poem-section {
   padding: 80rpx 48rpx 40rpx;
   text-align: center;
+  position: relative;
 }
 .detail-page.immersive .poem-section {
   padding: 120rpx 48rpx;
+}
+
+/* 繁简切换按钮 */
+.chinese-toggle {
+  position: absolute;
+  right: 48rpx;
+  top: 80rpx;
+  width: 64rpx;
+  height: 64rpx;
+  border-radius: 50%;
+  background: rgba(58, 74, 63, 0.08);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 10;
+}
+.chinese-toggle:active {
+  background: rgba(58, 74, 63, 0.15);
+}
+.toggle-text {
+  font-size: 28rpx;
+  color: #3A4A3F;
+  font-weight: 500;
 }
 
 .poem-title {

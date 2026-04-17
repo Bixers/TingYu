@@ -1,5 +1,6 @@
 // pages/share/index.js
 const api = require('../../utils/api')
+const cc = require('../../utils/chinese-convert')
 
 // 5款卡片模板配置
 const TEMPLATES = [
@@ -81,10 +82,17 @@ Page({
 
   loadPoem(id) {
     wx.showLoading({ title: '加载中...' })
+    var useT = getApp().globalData.useTraditional
     api.getPoemDetail(id).then(poem => {
-      var contentLines = api.parseContent(poem.content)
+      var rawLines = api.parseContent(poem.content)
+      var contentLines = rawLines.map(function(l) { return cc.convert(l, useT) })
+      var displayPoem = Object.assign({}, poem, {
+        title: cc.convert(poem.title, useT),
+        author: cc.convert(poem.author, useT),
+        dynasty: cc.convert(poem.dynasty, useT)
+      })
       var canvasStyleHeight = this.calcCanvasHeight(contentLines)
-      this.setData({ poem: poem, contentLines: contentLines, canvasStyleHeight: canvasStyleHeight }, () => {
+      this.setData({ poem: displayPoem, contentLines: contentLines, canvasStyleHeight: canvasStyleHeight }, () => {
         this.initCanvas()
       })
     }).catch(err => {

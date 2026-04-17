@@ -10,6 +10,7 @@
 .header {
   text-align: center;
   padding: 60rpx 0;
+  position: relative;
 }
 
 .header-title {
@@ -25,6 +26,29 @@
   font-size: 28rpx;
   color: #7A8A7F;
   letter-spacing: 4rpx;
+}
+
+.chinese-toggle {
+  position: absolute;
+  right: 0;
+  top: 60rpx;
+  width: 64rpx;
+  height: 64rpx;
+  border-radius: 50%;
+  background: rgba(58, 74, 63, 0.08);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.chinese-toggle:active {
+  background: rgba(58, 74, 63, 0.15);
+}
+
+.toggle-text {
+  font-size: 28rpx;
+  color: #3A4A3F;
+  font-weight: 500;
 }
 
 .poem-card-container {

@@ -9,6 +9,10 @@ App({
         traceUser: true
       })
     }
+
+    // 读取繁简偏好（默认简体）
+    var useTraditional = wx.getStorageSync('useTraditional')
+    this.globalData.useTraditional = useTraditional === true
   },
 
   globalData: {
@@ -16,6 +20,8 @@ App({
     // 云托管服务名称
     serviceName: 'springboot-84kb',
     // 标签跳转中转
-    pendingTag: ''
+    pendingTag: '',
+    // 繁简偏好：false=简体(默认), true=繁体
+    useTraditional: false
   }
 })

@@ -1,5 +1,6 @@
 // pages/detail/index.js
 const api = require('../../utils/api')
+const cc = require('../../utils/chinese-convert')
 
 Page({
   data: {
@@ -15,12 +16,67 @@ Page({
     showPinyinModal: false,
     pinyinData: null,
     pinyinLoading: false,
-    longPressText: ''
+    longPressText: '',
+    useTraditional: false
   },
 
   onLoad(options) {
+    this.setData({ useTraditional: getApp().globalData.useTraditional })
     if (options.id) {
       this.loadPoemDetail(options.id)
+    }
+  },
+
+  onShow() {
+    var useTraditional = getApp().globalData.useTraditional
+    if (useTraditional !== this.data.useTraditional) {
+      this.setData({ useTraditional: useTraditional })
+      this.applyConversion()
+    }
+  },
+
+  // 切换繁简
+  toggleChinese() {
+    var useTraditional = !this.data.useTraditional
+    this.setData({ useTraditional: useTraditional })
+    getApp().globalData.useTraditional = useTraditional
+    wx.setStorageSync('useTraditional', useTraditional)
+    this.applyConversion()
+  },
+
+  // 应用繁简转换
+  applyConversion() {
+    if (!this._rawPoem) return
+    var poem = this._rawPoem
+    var useT = this.data.useTraditional
+
+    var displayPoem = Object.assign({}, poem, {
+      title: cc.convert(poem.title, useT),
+      author: cc.convert(poem.author, useT),
+      dynasty: cc.convert(poem.dynasty, useT),
+      appreciation: cc.convert(poem.appreciation, useT),
+      translation: cc.convert(poem.translation, useT),
+      annotation: poem.annotation
+    })
+
+    var rawLines = api.parseContent(poem.content)
+    var contentLines = rawLines.map(function(line) { return cc.convert(line, useT) })
+    var tagsList = api.parseTags(poem.tags).map(function(tag) { return cc.convert(tag, useT) })
+
+    var annotationList = this._rawAnnotationList || []
+    var displayAnnotation = annotationList.map(function(item) {
+      return { word: cc.convert(item.word, useT), meaning: cc.convert(item.meaning, useT) }
+    })
+
+    this.setData({ poem: displayPoem, contentLines: contentLines, tagsList: tagsList, annotationList: displayAnnotation })
+
+    if (this._rawAuthorInfo) {
+      this.setData({
+        authorInfo: Object.assign({}, this._rawAuthorInfo, {
+          name: cc.convert(this._rawAuthorInfo.name, useT),
+          description: cc.convert(this._rawAuthorInfo.description, useT)
+        })
+      })
     }
   },
 
@@ -29,22 +85,40 @@ Page({
     this.setData({ loading: true })
 
     api.getPoemDetail(id).then(poem => {
-      const contentLines = api.parseContent(poem.content)
-      const tagsList = api.parseTags(poem.tags)
+      this._rawPoem = poem
+      var useT = this.data.useTraditional
+
+      var contentLines = api.parseContent(poem.content).map(function(l) { return cc.convert(l, useT) })
+      var tagsList = api.parseTags(poem.tags).map(function(t) { return cc.convert(t, useT) })
+
       // 确定默认显示的Tab
       let activeTab = 'annotation'
       if (!poem.annotation && poem.appreciation) activeTab = 'appreciation'
       else if (!poem.annotation && !poem.appreciation && poem.translation) activeTab = 'translation'
 
-      this.setData({ poem, contentLines, tagsList, activeTab })
-      wx.setNavigationBarTitle({ title: poem.title || '诗词详情' })
+      var displayPoem = Object.assign({}, poem, {
+        title: cc.convert(poem.title, useT),
+        author: cc.convert(poem.author, useT),
+        dynasty: cc.convert(poem.dynasty, useT),
+        appreciation: cc.convert(poem.appreciation, useT),
+        translation: cc.convert(poem.translation, useT),
+        annotation: poem.annotation
+      })
+
+      this.setData({ poem: displayPoem, contentLines: contentLines, tagsList: tagsList, activeTab: activeTab })
+      wx.setNavigationBarTitle({ title: displayPoem.title || '诗词详情' })
 
       // 解析注释 JSON（[{word, meaning}] 格式）
+      this._rawAnnotationList = []
       if (poem.annotation) {
         try {
           var list = JSON.parse(poem.annotation)
           if (Array.isArray(list)) {
-            this.setData({ annotationList: list })
+            this._rawAnnotationList = list
+            var displayList = list.map(function(item) {
+              return { word: cc.convert(item.word, useT), meaning: cc.convert(item.meaning, useT) }
+            })
+            this.setData({ annotationList: displayList })
           }
         } catch (e) {
           this.setData({ annotationList: [] })
@@ -54,7 +128,13 @@ Page({
       // 并行加载作者信息（非阻塞）
       if (poem.author) {
         api.getAuthorByName(poem.author).then(author => {
-          this.setData({ authorInfo: author })
+          this._rawAuthorInfo = author
+          this.setData({
+            authorInfo: Object.assign({}, author, {
+              name: cc.convert(author.name, useT),
+              description: cc.convert(author.description, useT)
+            })
+          })
         }).catch(() => {})
       }
     }).catch(err => {

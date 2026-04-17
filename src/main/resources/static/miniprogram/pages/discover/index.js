@@ -1,5 +1,6 @@
 // pages/discover/index.js
 const api = require('../../utils/api')
+const cc = require('../../utils/chinese-convert')
 
 Page({
   data: {
@@ -15,16 +16,25 @@ Page({
     selectedDynasty: '',
     selectedTag: '',
     showFilter: false,
-    total: 0
+    total: 0,
+    useTraditional: false
   },
 
   onLoad() {
+    this.setData({ useTraditional: getApp().globalData.useTraditional })
     this.loadPoems()
     this.loadDynasties()
     this.loadTags()
   },
 
   onShow() {
+    var useTraditional = getApp().globalData.useTraditional
+    if (useTraditional !== this.data.useTraditional) {
+      this.setData({ useTraditional: useTraditional })
+      // 重新转换已加载的列表
+      this.reconvertPoems()
+    }
+
     const app = getApp()
     const tag = app.globalData.pendingTag
     if (tag) {
@@ -38,7 +48,24 @@ Page({
     }
   },
 
+  // 重新转换已加载的诗词列表
+  reconvertPoems() {
+    if (!this._rawPoems || this._rawPoems.length === 0) return
+    var useT = this.data.useTraditional
+    var poems = this._rawPoems.map(function(poem) {
+      return Object.assign({}, poem, {
+        title: cc.convert(poem._rawTitle, useT),
+        author: cc.convert(poem._rawAuthor, useT),
+        dynasty: cc.convert(poem._rawDynasty, useT),
+        preview: cc.convert(poem._rawPreview, useT),
+        tagsList: (poem._rawTagsList || []).map(function(t) { return cc.convert(t, useT) })
+      })
+    })
+    this.setData({ poems: poems })
+  },
+
   onPullDownRefresh() {
+    this._rawPoems = []
     this.setData({ page: 1, poems: [], hasMore: true })
     this.loadPoems()
     setTimeout(() => {
@@ -63,19 +90,35 @@ Page({
     if (selectedDynasty) params.dynasty = selectedDynasty
     if (selectedTag) params.tag = selectedTag
 
+    var useT = this.data.useTraditional
+
     api.getPoemList(params).then(result => {
       const { list, total } = result
-      // 为每首诗解析内容预览和标签
-      const processedList = (list || []).map(poem => ({
-        ...poem,
-        preview: this.getPreview(poem.content),
-        tagsList: api.parseTags(poem.tags)
-      }))
-      const poems = page === 1 ? processedList : [...this.data.poems, ...processedList]
-      const hasMore = poems.length < total
+      // 为每首诗解析内容预览和标签，保留原始数据用于繁简转换
+      const processedList = (list || []).map(poem => {
+        var rawPreview = this.getPreview(poem.content)
+        var rawTagsList = api.parseTags(poem.tags)
+        return {
+          id: poem.id,
+          _rawTitle: poem.title,
+          _rawAuthor: poem.author,
+          _rawDynasty: poem.dynasty,
+          _rawPreview: rawPreview,
+          _rawTagsList: rawTagsList,
+          title: cc.convert(poem.title, useT),
+          author: cc.convert(poem.author, useT),
+          dynasty: cc.convert(poem.dynasty, useT),
+          preview: cc.convert(rawPreview, useT),
+          tagsList: rawTagsList.map(function(t) { return cc.convert(t, useT) })
+        }
+      })
+
+      var rawPoems = page === 1 ? processedList : (this._rawPoems || []).concat(processedList)
+      this._rawPoems = rawPoems
+      const hasMore = rawPoems.length < total
 
       this.setData({
-        poems,
+        poems: rawPoems,
         hasMore,
         total,
         page: page + 1
@@ -114,6 +157,7 @@ Page({
   },
 
   onSearch() {
+    this._rawPoems = []
     this.setData({ page: 1, poems: [], hasMore: true })
     this.loadPoems()
   },
@@ -127,6 +171,7 @@ Page({
   selectDynasty(e) {
     const dynasty = e.currentTarget.dataset.value
     const selected = dynasty === this.data.selectedDynasty ? '' : dynasty
+    this._rawPoems = []
     this.setData({
       selectedDynasty: selected,
       page: 1, poems: [], hasMore: true
@@ -138,6 +183,7 @@ Page({
   selectTag(e) {
     const tag = e.currentTarget.dataset.value
     const selected = tag === this.data.selectedTag ? '' : tag
+    this._rawPoems = []
     this.setData({
       selectedTag: selected,
       page: 1, poems: [], hasMore: true
@@ -147,6 +193,7 @@ Page({
 
   // 清空筛选
   clearFilters() {
+    this._rawPoems = []
     this.setData({
       selectedDynasty: '',
       selectedTag: '',

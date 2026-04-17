@@ -1,16 +1,26 @@
 // pages/index/index.js
 const api = require('../../utils/api')
+const cc = require('../../utils/chinese-convert')
 
 Page({
   data: {
     currentPoem: null,
     contentLines: [],
     loading: false,
-    animating: false
+    animating: false,
+    useTraditional: false
   },
 
   onLoad() {
     this.loadDailyPoem()
+  },
+
+  onShow() {
+    var useTraditional = getApp().globalData.useTraditional
+    if (useTraditional !== this.data.useTraditional) {
+      this.setData({ useTraditional: useTraditional })
+      this.applyConversion()
+    }
   },
 
   onPullDownRefresh() {
@@ -20,13 +30,48 @@ Page({
     }, 1000)
   },
 
+  // 切换繁简
+  toggleChinese() {
+    var useTraditional = !this.data.useTraditional
+    this.setData({ useTraditional: useTraditional })
+    getApp().globalData.useTraditional = useTraditional
+    wx.setStorageSync('useTraditional', useTraditional)
+    this.applyConversion()
+  },
+
+  // 应用繁简转换到当前显示数据
+  applyConversion() {
+    if (!this._rawPoem) return
+    var poem = this._rawPoem
+    var useT = this.data.useTraditional
+    var displayPoem = {
+      id: poem.id,
+      title: cc.convert(poem.title, useT),
+      author: cc.convert(poem.author, useT),
+      dynasty: cc.convert(poem.dynasty, useT),
+      content: poem.content
+    }
+    var rawLines = api.parseContent(poem.content)
+    var contentLines = rawLines.map(function(line) { return cc.convert(line, useT) })
+    this.setData({ currentPoem: displayPoem, contentLines: contentLines })
+  },
+
   // 加载每日诗词
   loadDailyPoem() {
     this.setData({ loading: true })
 
     api.getDailyPoem().then(poem => {
-      const contentLines = api.parseContent(poem.content)
-      this.setData({ currentPoem: poem, contentLines, animating: true })
+      this._rawPoem = poem
+      var useT = this.data.useTraditional
+      var contentLines = api.parseContent(poem.content).map(function(l) { return cc.convert(l, useT) })
+      var displayPoem = {
+        id: poem.id,
+        title: cc.convert(poem.title, useT),
+        author: cc.convert(poem.author, useT),
+        dynasty: cc.convert(poem.dynasty, useT),
+        content: poem.content
+      }
+      this.setData({ currentPoem: displayPoem, contentLines: contentLines, animating: true })
       setTimeout(() => this.setData({ animating: false }), 500)
     }).catch(err => {
       console.error('加载失败:', err)
@@ -42,8 +87,17 @@ Page({
     this.setData({ loading: true })
 
     api.getRandomPoem().then(poem => {
-      const contentLines = api.parseContent(poem.content)
-      this.setData({ currentPoem: poem, contentLines, animating: true })
+      this._rawPoem = poem
+      var useT = this.data.useTraditional
+      var contentLines = api.parseContent(poem.content).map(function(l) { return cc.convert(l, useT) })
+      var displayPoem = {
+        id: poem.id,
+        title: cc.convert(poem.title, useT),
+        author: cc.convert(poem.author, useT),
+        dynasty: cc.convert(poem.dynasty, useT),
+        content: poem.content
+      }
+      this.setData({ currentPoem: displayPoem, contentLines: contentLines, animating: true })
       setTimeout(() => this.setData({ animating: false }), 500)
     }).catch(err => {
       console.error('加载失败:', err)

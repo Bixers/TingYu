@@ -2,6 +2,9 @@
   <view class="header">
     <text class="header-title">听雨眠舟</text>
     <text class="header-subtitle">春水碧于天，画船听雨眠</text>
+    <view class="chinese-toggle" bindtap="toggleChinese">
+      <text class="toggle-text">{{useTraditional ? '繁' : '简'}}</text>
+    </view>
   </view>
 
   <view class="poem-card-container">

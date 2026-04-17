@@ -8,6 +8,10 @@
 
   <!-- 诗词正文区 -->
   <view class="poem-section fade-in" wx:if="{{poem}}" bindtap="toggleImmersive">
+    <!-- 繁简切换按钮 -->
+    <view class="chinese-toggle" catchtap="toggleChinese" wx:if="{{!immersiveMode}}">
+      <text class="toggle-text">{{useTraditional ? '繁' : '简'}}</text>
+    </view>
     <text class="poem-title" bindlongpress="onLongPressTitle">{{poem.title}}</text>
     <text class="poem-meta" bindlongpress="onLongPressAuthor">{{poem.dynasty}} · {{poem.author}}</text>
     <view class="poem-body">
