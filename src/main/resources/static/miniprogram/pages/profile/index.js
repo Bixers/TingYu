@@ -210,62 +210,34 @@ Page({
     if (this.data.submitting) return
 
     this.setData({ submitting: true })
-    wx.getUserProfile({
-      desc: '用于完善听雨眠舟账号信息',
-      success: (res) => {
-        const profile = (res && res.userInfo) || {}
-        const nickname = (profile.nickName || '听雨客').trim()
-        const avatarUrl = profile.avatarUrl || ''
-        api.registerUser({
-          nickname: nickname,
-          avatarUrl: avatarUrl
-        }).then((session) => {
-          const payload = session && session.user ? session : { user: session }
-          const user = payload.user || {}
-          const token = payload.token || ''
-          const expireAt = Number(payload.expireAt || 0)
-          if (token) {
-            wx.setStorageSync('authToken', token)
-            wx.setStorageSync('authTokenExpireAt', expireAt)
-            app.globalData.authToken = token
-            app.globalData.authTokenExpireAt = expireAt
-          }
-          app.globalData.userInfo = user
-          app.globalData.isLoggedIn = true
-          wx.setStorageSync('userInfo', user)
-          this.setData({
-            isLoggedIn: true,
-            userInfo: user,
-            showManualLogin: this.isProfileIncomplete(user),
-            tempAvatarUrl: '',
-            tempNickname: '',
-            rainPushEnabled: !!user.rainPushEnabled
-          })
-          wx.showToast({ title: '授权登录成功', icon: 'success' })
-          if (this.isProfileIncomplete(user)) {
-            wx.showModal({
-              title: '完善资料',
-              content: '已完成登录，但头像或昵称还未完善，可以现在补填。',
-              confirmText: '去完善',
-              cancelText: '稍后再说',
-              success: (modalRes) => {
-                if (modalRes.confirm) {
-                  this.showManualLoginForm()
-                }
-              }
-            })
-          }
-        }).catch((err) => {
-          console.error('授权登录失败', err)
-          wx.showToast({ title: (err && err.message) || '登录失败', icon: 'none' })
-        }).finally(() => {
-          this.setData({ submitting: false })
-        })
-      },
-      fail: () => {
-        this.setData({ submitting: false })
-        wx.showToast({ title: '已取消授权', icon: 'none' })
+    api.loginUser().then((session) => {
+      const payload = session && session.user ? session : { user: session }
+      const user = payload.user || {}
+      const token = payload.token || ''
+      const expireAt = Number(payload.expireAt || 0)
+      if (token) {
+        wx.setStorageSync('authToken', token)
+        wx.setStorageSync('authTokenExpireAt', expireAt)
+        app.globalData.authToken = token
+        app.globalData.authTokenExpireAt = expireAt
       }
+      app.globalData.userInfo = user
+      app.globalData.isLoggedIn = true
+      wx.setStorageSync('userInfo', user)
+      this.setData({
+        isLoggedIn: true,
+        userInfo: user,
+        showManualLogin: false,
+        tempAvatarUrl: '',
+        tempNickname: '',
+        rainPushEnabled: !!user.rainPushEnabled
+      })
+      wx.showToast({ title: '登录成功', icon: 'success' })
+    }).catch((err) => {
+      console.error('登录失败', err)
+      wx.showToast({ title: (err && err.message) || '登录失败', icon: 'none' })
+    }).finally(() => {
+      this.setData({ submitting: false })
     })
   },
 

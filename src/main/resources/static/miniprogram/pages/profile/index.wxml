@@ -1,48 +1,19 @@
 <view class="profile-page">
   <view class="user-card card fade-in" wx:if="{{isLoggedIn}}">
     <view class="user-info">
-      <image class="user-avatar" src="{{userInfo.avatarUrl || '/images/profile_normal.png'}}" mode="aspectFill"></image>
+      <image class="user-avatar" src="{{userInfo.avatarUrl || '/images/icon.png'}}" mode="aspectFill"></image>
       <view class="user-detail">
         <text class="user-nickname">{{userInfo.nickname}}</text>
-        <text class="user-id text-muted">头像与昵称已授权绑定</text>
       </view>
     </view>
   </view>
 
-  <view class="login-card card fade-in" wx:if="{{!isLoggedIn && !showManualLogin}}">
+  <view class="login-card card fade-in" wx:if="{{!isLoggedIn}}">
     <view class="login-guide">
-      <text class="login-title">微信授权登录</text>
-      <text class="login-desc text-muted">点击后会拉起微信授权窗口，先完成登录建账；如果资料不完整，登录后再补填。</text>
+      <text class="login-title">微信登录</text>
+      <text class="login-desc text-muted">点击后直接完成登录，系统会自动生成固定昵称与头像。</text>
       <button class="btn-primary login-btn" bindtap="requestUserProfile" loading="{{submitting}}" disabled="{{submitting}}">
-        {{submitting ? '授权中...' : '微信授权登录'}}
-      </button>
-    </view>
-  </view>
-
-  <view class="login-card card fade-in" wx:if="{{isLoggedIn && showManualLogin}}">
-    <view class="login-guide form-guide">
-      <text class="login-title">{{isLoggedIn ? '更新微信资料' : '手动完善资料'}}</text>
-      <text class="login-desc text-muted">如果微信资料获取不到，也可以在登录后手动补上头像和昵称。</text>
-
-      <button class="avatar-picker" open-type="chooseAvatar" bindchooseavatar="onChooseAvatar">
-        <image class="avatar-preview" src="{{tempAvatarUrl || userInfo.avatarUrl || '/images/profile_normal.png'}}" mode="aspectFill"></image>
-        <text class="avatar-tip">点击选择头像</text>
-      </button>
-
-      <input
-        class="nickname-input"
-        type="nickname"
-        placeholder="请输入昵称"
-        value="{{tempNickname}}"
-        bindinput="onNicknameInput"
-      />
-
-      <button class="btn-primary login-btn" bindtap="submitManualLogin" loading="{{submitting}}" disabled="{{submitting}}">
-        {{submitting ? '提交中...' : '确认登录'}}
-      </button>
-
-      <button class="btn-secondary secondary-btn" bindtap="hideLoginForm" disabled="{{submitting}}">
-        取消
+        {{submitting ? '登录中...' : '微信登录'}}
       </button>
     </view>
   </view>
