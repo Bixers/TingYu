@@ -1,21 +1,17 @@
 <view class="favorite-page">
   <view class="header">
     <text class="title">收藏</text>
-    <text class="subtitle">全文与句子收藏统一管理</text>
+    <text class="subtitle">全文收藏保留在这里，句子摘录请前往摘录本。</text>
   </view>
 
-  <view class="type-tabs">
-    <view class="type-tab {{activeType === 'FULL' ? 'active' : ''}}" bindtap="switchType" data-type="FULL">
-      <text>全文收藏</text>
-    </view>
-    <view class="type-tab {{activeType === 'SENTENCE' ? 'active' : ''}}" bindtap="switchType" data-type="SENTENCE">
-      <text>句子收藏</text>
-    </view>
+  <view class="shortcut-card" bindtap="goToExcerpts">
+    <text class="shortcut-title">去摘录本</text>
+    <text class="shortcut-desc">查看带批注的句子摘录</text>
   </view>
 
   <view class="empty-state" wx:if="{{!loggedIn}}">
     <text class="empty-title">登录后可查看收藏</text>
-    <text class="empty-desc">前往“我的”页完成微信登录后即可使用收藏功能</text>
+    <text class="empty-desc">前往“我的”页面完成微信登录后，即可使用收藏功能。</text>
     <view class="empty-btn" bindtap="goToLogin">
       <text>去登录</text>
     </view>
@@ -26,8 +22,8 @@
   </view>
 
   <view class="empty-state" wx:if="{{loggedIn && !loading && favorites.length === 0}}">
-    <text class="empty-title">这里还没有收藏</text>
-    <text class="empty-desc">{{activeType === 'FULL' ? '在详情页点“收藏全文”即可保存整首诗词' : '在复制原文弹窗里点“收藏句子”即可保存单句'}}</text>
+    <text class="empty-title">这里还没有全文收藏</text>
+    <text class="empty-desc">在详情页点击“收藏全文”即可保存整首诗词。</text>
   </view>
 
   <view class="favorite-list" wx:if="{{loggedIn && !loading && favorites.length > 0}}">
@@ -37,13 +33,8 @@
         <text class="favorite-author">{{item.poemDynasty}} · {{item.poemAuthor}}</text>
       </view>
 
-      <view class="favorite-content" wx:if="{{activeType === 'FULL'}}">
+      <view class="favorite-content">
         <text class="favorite-preview">{{item.preview}}</text>
-      </view>
-
-      <view class="favorite-content" wx:if="{{activeType === 'SENTENCE'}}">
-        <text class="favorite-sentence">{{item.sentenceText}}</text>
-        <text class="favorite-preview text-muted">{{item.preview}}</text>
       </view>
 
       <view class="favorite-actions">

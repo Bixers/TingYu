@@ -1,6 +1,5 @@
 App({
   onLaunch() {
-    // 初始化云开发
     if (!wx.cloud) {
       console.error('请使用 2.2.3 或以上的基础库以使用云能力')
     } else {
@@ -10,12 +9,10 @@ App({
       })
     }
 
-    // 读取繁简偏好（默认简体）
-    var useTraditional = wx.getStorageSync('useTraditional')
+    const useTraditional = wx.getStorageSync('useTraditional')
     this.globalData.useTraditional = useTraditional === true
 
-    // 恢复登录状态
-    var userInfo = wx.getStorageSync('userInfo')
+    const userInfo = wx.getStorageSync('userInfo')
     if (userInfo && userInfo.nickname) {
       this.globalData.userInfo = userInfo
       this.globalData.isLoggedIn = true
@@ -25,11 +22,9 @@ App({
   globalData: {
     userInfo: null,
     isLoggedIn: false,
-    // 云托管服务名称
     serviceName: 'springboot-84kb',
-    // 标签跳转中转
+    dailyRainTemplateId: '',
     pendingTag: '',
-    // 繁简偏好：false=简体(默认), true=繁体
     useTraditional: false
   }
 })

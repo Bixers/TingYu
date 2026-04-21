@@ -1,10 +1,21 @@
 <view class="index-page">
-  <view class="header">
-    <text class="header-title">听雨眠舟</text>
-    <text class="header-subtitle">春水碧于天，画船听雨眠</text>
-    <view class="chinese-toggle" bindtap="toggleChinese">
-      <text class="toggle-text">{{useTraditional ? '繁' : '简'}}</text>
+  <view class="hero-shell">
+    <view class="hero-top">
+      <view class="hero-copy">
+        <text class="hero-kicker">听雨眠舟</text>
+        <text class="hero-title">今日诗词</text>
+        <text class="hero-subtitle">春水碧于天，画舟听雨眠。</text>
+      </view>
+      <view class="chinese-toggle" bindtap="toggleChinese">
+        <text class="toggle-text">{{useTraditional ? '繁' : '简'}}</text>
+      </view>
     </view>
+
+    <view class="hero-meta">
+      <text class="hero-badge">{{poemCalendarLabel}}</text>
+      <text class="hero-badge soft" wx:if="{{poemSourceLabel}}">{{poemSourceLabel}}</text>
+    </view>
+    <text class="hero-reason" wx:if="{{poemReason}}">{{poemReason}}</text>
   </view>
 
   <view class="poem-card-container">
@@ -14,7 +25,7 @@
         <text class="poem-meta" wx:if="{{currentPoem}}">
           {{currentPoem.dynasty}} · {{currentPoem.author}}
         </text>
-        <text class="poem-tagline" wx:if="{{poemSourceLabel}}">{{poemSourceLabel}}</text>
+        <view class="poem-divider"></view>
         <view class="poem-lines" wx:if="{{contentLines.length > 0}}">
           <block wx:for="{{contentLines}}" wx:key="index">
             <text class="poem-line">{{item}}</text>
@@ -24,15 +35,33 @@
     </view>
   </view>
 
-  <view class="action-buttons">
-    <view class="action-button" bindtap="loadRandomPoem">
-      <text class="button-text">换一首</text>
+  <view class="calendar-strip" wx:if="{{currentPoem}}">
+    <view class="calendar-label" bindtap="goToPoemCalendar">
+      <text class="calendar-text">{{poemCalendarLabel}}</text>
+      <text class="calendar-hint">生成今日诗历</text>
     </view>
-    <view class="action-button" bindtap="goToShare">
-      <text class="button-text">生成卡片</text>
+  </view>
+
+  <view class="action-panel">
+    <view class="action-row">
+      <view class="action-button primary" bindtap="loadRandomPoem">
+        <text class="button-title">换一首</text>
+        <text class="button-subtitle">重新抽取一首诗词</text>
+      </view>
+      <view class="action-button accent" bindtap="goToShare">
+        <text class="button-title">生成卡片</text>
+        <text class="button-subtitle">做一张可分享诗卡</text>
+      </view>
     </view>
-    <view class="action-button" bindtap="goToDiscover">
-      <text class="button-text">发现</text>
+    <view class="action-row">
+      <view class="action-button soft" bindtap="goToPoemCalendar">
+        <text class="button-title">今日诗历</text>
+        <text class="button-subtitle">生成当日打卡签</text>
+      </view>
+      <view class="action-button soft" bindtap="goToDiscover">
+        <text class="button-title">发现</text>
+        <text class="button-subtitle">浏览更多诗词</text>
+      </view>
     </view>
   </view>
 

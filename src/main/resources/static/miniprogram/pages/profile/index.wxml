@@ -4,38 +4,41 @@
       <image class="user-avatar" src="{{userInfo.avatarUrl || '/images/profile_normal.png'}}" mode="aspectFill"></image>
       <view class="user-detail">
         <text class="user-nickname">{{userInfo.nickname}}</text>
-        <text class="user-id text-muted">微信头像昵称已绑定</text>
+        <text class="user-id text-muted">头像与昵称已授权绑定</text>
       </view>
     </view>
   </view>
 
-  <view class="login-card card fade-in" wx:if="{{!isLoggedIn && !showLoginForm}}">
+  <view class="login-card card fade-in" wx:if="{{!isLoggedIn && !showManualLogin}}">
     <view class="login-guide">
-      <text class="login-title">登录后体验更多功能</text>
-      <text class="login-desc text-muted">点击后填写微信头像与昵称，完成小程序登录</text>
-      <button class="btn-primary login-btn" bindtap="showLoginForm">微信登录</button>
+      <text class="login-title">微信授权登录</text>
+      <text class="login-desc text-muted">点击后拉起微信授权，自动获取昵称和头像，用于完善诗舟身份信息。</text>
+      <button class="btn-primary login-btn" bindtap="requestUserProfile" loading="{{submitting}}" disabled="{{submitting}}">
+        {{submitting ? '授权中...' : '微信授权登录'}}
+      </button>
+      <button class="btn-secondary secondary-btn" bindtap="showManualLoginForm">手动填写</button>
     </view>
   </view>
 
-  <view class="login-card card fade-in" wx:if="{{showLoginForm}}">
+  <view class="login-card card fade-in" wx:if="{{showManualLogin}}">
     <view class="login-guide form-guide">
-      <text class="login-title">{{isLoggedIn ? '更新微信资料' : '完善微信资料'}}</text>
-      <text class="login-desc text-muted">请通过微信能力选择头像并填写昵称</text>
+      <text class="login-title">{{isLoggedIn ? '更新微信资料' : '手动完善资料'}}</text>
+      <text class="login-desc text-muted">如果授权失败，可以手动选择头像并填写昵称。</text>
 
       <button class="avatar-picker" open-type="chooseAvatar" bindchooseavatar="onChooseAvatar">
         <image class="avatar-preview" src="{{tempAvatarUrl || userInfo.avatarUrl || '/images/profile_normal.png'}}" mode="aspectFill"></image>
-        <text class="avatar-tip">点击选择微信头像</text>
+        <text class="avatar-tip">点击选择头像</text>
       </button>
 
       <input
         class="nickname-input"
         type="nickname"
-        placeholder="请输入微信昵称"
+        placeholder="请输入昵称"
         value="{{tempNickname}}"
         bindinput="onNicknameInput"
       />
 
-      <button class="btn-primary login-btn" bindtap="submitLogin" loading="{{submitting}}" disabled="{{submitting}}">
+      <button class="btn-primary login-btn" bindtap="submitManualLogin" loading="{{submitting}}" disabled="{{submitting}}">
         {{submitting ? '提交中...' : '确认登录'}}
       </button>
 
@@ -47,12 +50,68 @@
 
   <view class="menu-section card fade-in" wx:if="{{isLoggedIn}}">
     <view class="menu-item" bindtap="editProfile">
-      <text class="menu-text">重新获取头像昵称</text>
+      <text class="menu-text">重新拉取头像昵称</text>
+      <text class="menu-arrow">></text>
+    </view>
+    <view class="menu-item" bindtap="goToBoat">
+      <text class="menu-text">诗舟</text>
       <text class="menu-arrow">></text>
     </view>
     <view class="menu-item" bindtap="goToFavorites">
       <text class="menu-text">收藏</text>
       <text class="menu-arrow">></text>
+    </view>
+    <view class="menu-item" bindtap="goToExcerpts">
+      <text class="menu-text">摘录本</text>
+      <text class="menu-arrow">></text>
+    </view>
+  </view>
+
+  <view class="boat-card card fade-in" wx:if="{{isLoggedIn}}">
+    <view class="row-between">
+      <text class="boat-title">每日雨丝</text>
+      <switch checked="{{rainPushEnabled}}" bindchange="onRainPushChange" color="#55655C"></switch>
+    </view>
+    <text class="boat-copy">开启后将记录你的订阅偏好，后续会按日发送一条诗意提醒。</text>
+    <view class="compose-actions">
+      <view class="btn-secondary compose-btn" bindtap="subscribeDailyRain">
+        <text>订阅今日雨丝</text>
+      </view>
+    </view>
+  </view>
+
+  <view class="boat-card card fade-in" wx:if="{{isLoggedIn && boatSummary}}">
+    <text class="boat-title">诗舟里程</text>
+    <text class="boat-copy">你已伴诗舟行过 {{boatSummary.daysElapsed || 0}} 日，共读 {{boatSummary.totalPoems || 0}} 首诗词。</text>
+    <view class="boat-stats">
+      <view class="boat-stat">
+        <text class="boat-stat-value">{{boatSummary.totalViews || 0}}</text>
+        <text class="boat-stat-label">浏览次数</text>
+      </view>
+      <view class="boat-stat">
+        <text class="boat-stat-value">{{boatSummary.series[6] ? boatSummary.series[6].poems : 0}}</text>
+        <text class="boat-stat-label">今日读诗</text>
+      </view>
+      <view class="boat-stat">
+        <text class="boat-stat-value">{{boatSummary.totalSearches || 0}}</text>
+        <text class="boat-stat-label">搜索次数</text>
+      </view>
+    </view>
+
+    <view class="boat-chart">
+      <view class="boat-chart-header">
+        <text class="boat-chart-title">最近七日阅读轨迹</text>
+        <text class="boat-chart-hint">记录停泊过的每一次阅读</text>
+      </view>
+      <view class="boat-chart-bars">
+        <view class="boat-chart-item" wx:for="{{boatSummary.series}}" wx:key="dayKey">
+          <view class="boat-chart-track">
+            <view class="boat-chart-fill" style="height: {{item.viewsBarHeight}}%;"></view>
+          </view>
+          <text class="boat-chart-value">{{item.views}}</text>
+          <text class="boat-chart-label">{{item.shortDayLabel}}</text>
+        </view>
+      </view>
     </view>
   </view>
 

@@ -1,53 +1,111 @@
 .index-page {
   min-height: 100vh;
-  background: linear-gradient(180deg, #F5F3F0 0%, #E8E4DF 100%);
-  padding: 40rpx;
+  background:
+    radial-gradient(circle at top, rgba(255, 255, 255, 0.92) 0%, rgba(245, 243, 240, 1) 34%, #E8E4DF 100%);
+  padding: 24rpx 28rpx 40rpx;
   display: flex;
   flex-direction: column;
   box-sizing: border-box;
 }
 
-.header {
-  text-align: center;
-  padding: 60rpx 0;
-  position: relative;
+.hero-shell {
+  margin-top: 8rpx;
+  padding: 28rpx 26rpx 22rpx;
+  border-radius: 34rpx;
+  background: linear-gradient(180deg, rgba(58, 74, 63, 0.98) 0%, rgba(90, 106, 95, 0.92) 100%);
+  box-shadow: 0 18rpx 44rpx rgba(58, 74, 63, 0.14);
+  color: #FDF8F0;
 }
 
-.header-title {
-  font-size: 64rpx;
-  font-weight: 600;
-  color: #3A4A3F;
-  letter-spacing: 8rpx;
+.hero-top {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 24rpx;
+}
+
+.hero-copy {
+  flex: 1;
+}
+
+.hero-kicker {
   display: block;
-  margin-bottom: 16rpx;
-}
-
-.header-subtitle {
-  font-size: 28rpx;
-  color: #7A8A7F;
+  font-size: 22rpx;
+  color: rgba(253, 248, 240, 0.72);
   letter-spacing: 4rpx;
 }
 
+.hero-title {
+  display: block;
+  margin-top: 10rpx;
+  font-size: 46rpx;
+  font-weight: 600;
+  letter-spacing: 4rpx;
+}
+
+.hero-subtitle {
+  display: block;
+  margin-top: 12rpx;
+  font-size: 24rpx;
+  line-height: 1.7;
+  color: rgba(253, 248, 240, 0.88);
+}
+
+.hero-meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12rpx;
+  margin-top: 18rpx;
+}
+
+.hero-badge {
+  display: inline-flex;
+  align-items: center;
+  padding: 10rpx 18rpx;
+  border-radius: 999rpx;
+  background: rgba(255, 255, 255, 0.16);
+  color: #FDF8F0;
+  font-size: 22rpx;
+}
+
+.hero-badge.soft {
+  background: rgba(255, 255, 255, 0.08);
+  color: rgba(253, 248, 240, 0.82);
+}
+
+.hero-reason {
+  display: block;
+  margin-top: 16rpx;
+  padding: 16rpx 18rpx;
+  border-radius: 18rpx;
+  background: rgba(255, 255, 255, 0.10);
+  font-size: 22rpx;
+  line-height: 1.7;
+  color: rgba(253, 248, 240, 0.92);
+}
+
+.header {
+  display: none;
+}
+
 .chinese-toggle {
-  position: absolute;
-  right: 0;
-  top: 60rpx;
-  width: 64rpx;
-  height: 64rpx;
+  width: 68rpx;
+  height: 68rpx;
   border-radius: 50%;
-  background: rgba(58, 74, 63, 0.08);
+  background: rgba(255, 255, 255, 0.12);
   display: flex;
   align-items: center;
   justify-content: center;
+  flex-shrink: 0;
 }
 
 .chinese-toggle:active {
-  background: rgba(58, 74, 63, 0.15);
+  background: rgba(255, 255, 255, 0.2);
 }
 
 .toggle-text {
   font-size: 28rpx;
-  color: #3A4A3F;
+  color: #FDF8F0;
   font-weight: 500;
 }
 
@@ -56,15 +114,16 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  padding: 20rpx 0;
+  padding: 18rpx 0 10rpx;
 }
 
 .poem-card {
   width: 100%;
-  background: #FFFFFF;
-  border-radius: 32rpx;
-  box-shadow: 0 8rpx 40rpx rgba(58, 74, 63, 0.08);
-  padding: 64rpx 48rpx;
+  background: rgba(255, 255, 255, 0.9);
+  border-radius: 34rpx;
+  box-shadow: 0 16rpx 44rpx rgba(58, 74, 63, 0.12);
+  padding: 56rpx 42rpx 50rpx;
+  border: 1rpx solid rgba(58, 74, 63, 0.05);
 }
 
 .poem-content {
@@ -72,76 +131,133 @@
 }
 
 .poem-title {
-  font-size: 48rpx;
+  font-size: 46rpx;
   font-weight: 600;
   color: #3A4A3F;
-  margin-bottom: 24rpx;
+  margin-bottom: 18rpx;
   display: block;
 }
 
 .poem-meta {
-  font-size: 28rpx;
+  font-size: 26rpx;
   color: #7A8A7F;
-  margin-bottom: 20rpx;
+  margin-bottom: 22rpx;
   display: block;
 }
 
-.poem-tagline {
-  display: inline-block;
-  font-size: 22rpx;
-  color: #A07C4A;
-  background: #F7F1E7;
+.poem-divider {
+  width: 96rpx;
+  height: 4rpx;
+  margin: 0 auto 28rpx;
   border-radius: 999rpx;
-  padding: 8rpx 20rpx;
-  margin-bottom: 32rpx;
+  background: linear-gradient(90deg, rgba(212, 184, 150, 0.2) 0%, rgba(212, 184, 150, 0.85) 50%, rgba(212, 184, 150, 0.2) 100%);
 }
 
 .poem-lines {
-  margin-top: 40rpx;
+  margin-top: 10rpx;
 }
 
 .poem-line {
-  font-size: 36rpx;
+  font-size: 34rpx;
   color: #3A4A3F;
-  line-height: 2;
+  line-height: 2.02;
   display: block;
-  letter-spacing: 4rpx;
+  letter-spacing: 3rpx;
 }
 
-.action-buttons {
+.calendar-strip {
+  padding: 0 0 8rpx;
   display: flex;
-  justify-content: space-around;
-  padding: 60rpx 20rpx 80rpx;
-  gap: 32rpx;
+  justify-content: center;
+}
+
+.calendar-label {
+  display: inline-flex;
+  align-items: center;
+  gap: 14rpx;
+  padding: 14rpx 22rpx;
+  border-radius: 999rpx;
+  background: rgba(255, 255, 255, 0.84);
+  border: 1rpx solid rgba(58, 74, 63, 0.06);
+}
+
+.calendar-text {
+  font-size: 24rpx;
+  color: #5A6A5F;
+}
+
+.calendar-hint {
+  font-size: 22rpx;
+  color: #A07C4A;
+}
+
+.action-panel {
+  padding: 22rpx 4rpx 52rpx;
+  display: flex;
+  flex-direction: column;
+  gap: 18rpx;
+}
+
+.action-row {
+  display: flex;
+  gap: 18rpx;
 }
 
 .action-button {
   flex: 1;
+  min-height: 114rpx;
   display: flex;
   flex-direction: column;
-  align-items: center;
   justify-content: center;
-  background: #FFFFFF;
-  border-radius: 24rpx;
-  padding: 32rpx 24rpx;
-  box-shadow: 0 4rpx 16rpx rgba(58, 74, 63, 0.06);
+  border-radius: 26rpx;
+  padding: 20rpx 22rpx;
+  box-shadow: 0 8rpx 22rpx rgba(58, 74, 63, 0.08);
+  box-sizing: border-box;
 }
 
 .action-button:active {
-  opacity: 0.8;
+  transform: scale(0.99);
+  opacity: 0.92;
 }
 
-.button-text {
-  font-size: 26rpx;
+.action-button.primary {
+  background: linear-gradient(135deg, #3A4A3F 0%, #5A6A5F 100%);
+}
+
+.action-button.accent {
+  background: linear-gradient(135deg, #D4B896 0%, #E6D4BE 100%);
+}
+
+.action-button.soft {
+  background: rgba(255, 255, 255, 0.84);
+  border: 1rpx solid rgba(58, 74, 63, 0.06);
+}
+
+.button-title {
+  font-size: 28rpx;
+  font-weight: 600;
   color: #3A4A3F;
+}
+
+.action-button.primary .button-title,
+.action-button.accent .button-title {
+  color: #FFFFFF;
+}
+
+.button-subtitle {
+  margin-top: 8rpx;
+  font-size: 22rpx;
+  color: rgba(58, 74, 63, 0.68);
+}
+
+.action-button.primary .button-subtitle,
+.action-button.accent .button-subtitle {
+  color: rgba(255, 255, 255, 0.86);
 }
 
 .loading-overlay {
   position: fixed;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
+  inset: 0;
   background: rgba(245, 243, 240, 0.9);
   display: flex;
   align-items: center;

@@ -1,0 +1,82 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.tencent.wxcloudrun.dao.ExcerptMapper">
+
+    <resultMap id="ExcerptResultMap" type="com.tencent.wxcloudrun.model.Excerpt">
+        <id property="id" column="id"/>
+        <result property="userId" column="user_id"/>
+        <result property="poemId" column="poem_id"/>
+        <result property="sentenceIndex" column="sentence_index"/>
+        <result property="sentenceText" column="sentence_text"/>
+        <result property="note" column="note"/>
+        <result property="createdAt" column="created_at"/>
+        <result property="updatedAt" column="updated_at"/>
+        <result property="poemTitle" column="poem_title"/>
+        <result property="poemDynasty" column="poem_dynasty"/>
+        <result property="poemAuthor" column="poem_author"/>
+        <result property="poemContent" column="poem_content"/>
+        <result property="poemTags" column="poem_tags"/>
+    </resultMap>
+
+    <insert id="insert" parameterType="com.tencent.wxcloudrun.model.Excerpt">
+        INSERT INTO excerpts (
+            id, user_id, poem_id, sentence_index, sentence_text, note, created_at, updated_at
+        ) VALUES (
+            #{id}, #{userId}, #{poemId}, #{sentenceIndex}, #{sentenceText}, #{note}, #{createdAt}, #{updatedAt}
+        )
+    </insert>
+
+    <update id="updateNote">
+        UPDATE excerpts
+        SET note = #{note},
+            updated_at = CURRENT_TIMESTAMP
+        WHERE id = #{id}
+    </update>
+
+    <delete id="deleteById">
+        DELETE FROM excerpts WHERE id = #{id}
+    </delete>
+
+    <select id="findById" resultMap="ExcerptResultMap">
+        SELECT e.*,
+               p.title AS poem_title,
+               p.dynasty AS poem_dynasty,
+               p.author AS poem_author,
+               p.content AS poem_content,
+               p.tags AS poem_tags
+        FROM excerpts e
+        LEFT JOIN poems p ON p.id = e.poem_id
+        WHERE e.id = #{id}
+        LIMIT 1
+    </select>
+
+    <select id="findByUserIdAndPoemIdAndSentenceIndexAndSentenceText" resultMap="ExcerptResultMap">
+        SELECT e.*,
+               p.title AS poem_title,
+               p.dynasty AS poem_dynasty,
+               p.author AS poem_author,
+               p.content AS poem_content,
+               p.tags AS poem_tags
+        FROM excerpts e
+        LEFT JOIN poems p ON p.id = e.poem_id
+        WHERE e.user_id = #{userId}
+          AND e.poem_id = #{poemId}
+          AND e.sentence_index = #{sentenceIndex}
+          AND e.sentence_text = #{sentenceText}
+        LIMIT 1
+    </select>
+
+    <select id="findByUserId" resultMap="ExcerptResultMap">
+        SELECT e.*,
+               p.title AS poem_title,
+               p.dynasty AS poem_dynasty,
+               p.author AS poem_author,
+               p.content AS poem_content,
+               p.tags AS poem_tags
+        FROM excerpts e
+        LEFT JOIN poems p ON p.id = e.poem_id
+        WHERE e.user_id = #{userId}
+        ORDER BY e.created_at DESC
+    </select>
+
+</mapper>

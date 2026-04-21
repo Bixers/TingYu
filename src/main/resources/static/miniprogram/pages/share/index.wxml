@@ -1,18 +1,30 @@
-<!-- pages/share/index.wxml -->
 <view class="share-page">
+  <view class="hero-section">
+    <text class="page-title">{{calendarMode ? '今日诗历' : '生成卡片'}}</text>
+    <text class="page-subtitle" wx:if="{{!calendarMode}}">为当前诗词挑选一张更合适的卡面，让分享更像一封信。</text>
+    <text class="page-subtitle" wx:else>今日诗历会带上日期、名句和当日摘录，适合留存与分享。</text>
+  </view>
 
-  <!-- Canvas 预览区 -->
-  <view class="canvas-container">
-    <view class="canvas-wrap" style="height: {{canvasStyleHeight}}rpx;">
-      <canvas type="2d" id="shareCanvas" class="share-canvas"></canvas>
+  <view class="preview-panel card">
+    <view class="canvas-container">
+      <view class="canvas-wrap" style="height: {{canvasStyleHeight}}rpx;">
+        <canvas type="2d" id="shareCanvas" class="share-canvas"></canvas>
+      </view>
+      <view class="canvas-loading" wx:if="{{!canvasReady && poem}}">
+        <text class="text-muted">生成中...</text>
+      </view>
     </view>
-    <view class="canvas-loading" wx:if="{{!canvasReady && poem}}">
-      <text class="text-muted">生成中...</text>
+
+    <view class="preview-footer" wx:if="{{poem}}">
+      <view class="preview-meta">
+        <text class="preview-title">{{calendarMode ? '今日诗历' : poem.title}}</text>
+        <text class="preview-desc">{{calendarMode ? calendarDateLabel : poem.dynasty + ' · ' + poem.author}}</text>
+      </view>
+      <text class="preview-excerpt">{{calendarMode ? calendarExcerpt : contentLines[0]}}</text>
     </view>
   </view>
 
-  <!-- 模板选择 -->
-  <view class="template-section">
+  <view class="template-section" wx:if="{{!calendarMode}}">
     <text class="section-title">选择模板</text>
     <scroll-view scroll-x class="template-scroll">
       <view class="template-list">
@@ -30,13 +42,17 @@
     </scroll-view>
   </view>
 
-  <!-- 操作按钮 -->
+  <view class="template-section" wx:if="{{calendarMode}}">
+    <text class="section-title">今日诗历</text>
+    <text class="calendar-meta">{{calendarLabel}}</text>
+  </view>
+
   <view class="action-section">
     <view class="save-btn btn-primary" bindtap="saveToAlbum">
       <text>{{saving ? '保存中...' : '保存到相册'}}</text>
     </view>
     <button class="share-friend-btn btn-secondary" open-type="share">
-      <text>分享好友</text>
+      <text>{{calendarMode ? '分享今日诗历' : '分享好友'}}</text>
     </button>
   </view>
 </view>

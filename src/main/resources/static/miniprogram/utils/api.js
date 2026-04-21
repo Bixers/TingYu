@@ -80,6 +80,10 @@ function getAuthorByName(name) {
   return request(`/api/authors/by-name?name=${encodeURIComponent(name)}`)
 }
 
+function getAppConfig() {
+  return request('/api/meta/config')
+}
+
 function getPinyin(text) {
   return request('/api/tools/pinyin', 'POST', { text: text })
 }
@@ -90,6 +94,12 @@ function getUserProfile() {
 
 function registerUser(data) {
   return request('/api/user/register', 'POST', data)
+}
+
+function updateRainPushPreference(enabled) {
+  return request('/api/user/rain-push', 'POST', {
+    enabled: !!enabled
+  })
 }
 
 function getFavorites(type) {
@@ -125,6 +135,82 @@ function deleteFavorite(id) {
   return request(`/api/favorites/${id}`, 'DELETE')
 }
 
+function getExcerpts() {
+  return request('/api/excerpts')
+}
+
+function addExcerpt(data) {
+  return request('/api/excerpts', 'POST', data)
+}
+
+function updateExcerpt(id, data) {
+  return request(`/api/excerpts/${id}`, 'PUT', data)
+}
+
+function deleteExcerpt(id) {
+  return request(`/api/excerpts/${id}`, 'DELETE')
+}
+
+function getUsageSummary() {
+  return request('/api/usage/summary')
+}
+
+function getBoatMessages(limit) {
+  const query = buildQuery({
+    limit: limit || 20
+  })
+  return request(`/api/boat/messages${query}`)
+}
+
+function getBoatMyMessages(limit) {
+  const query = buildQuery({
+    limit: limit || 20
+  })
+  return request(`/api/boat/messages/mine${query}`)
+}
+
+function getBoatCollectedMessages(limit) {
+  const query = buildQuery({
+    limit: limit || 20
+  })
+  return request(`/api/boat/messages/collected${query}`)
+}
+
+function getBoatRecentReceivedMessages(limit) {
+  const query = buildQuery({
+    limit: limit || 3
+  })
+  return request(`/api/boat/messages/recent-received${query}`)
+}
+
+function getBoatThread(id) {
+  return request(`/api/boat/messages/${encodeURIComponent(id)}`)
+}
+
+function publishBoatMessage(data) {
+  return request('/api/boat/messages', 'POST', data)
+}
+
+function receiveBoatMessage() {
+  return request('/api/boat/receive', 'POST', {})
+}
+
+function collectBoatMessage(id) {
+  return request(`/api/boat/messages/${encodeURIComponent(id)}/collect`, 'POST', {})
+}
+
+function replyBoatMessage(id, data) {
+  return request(`/api/boat/messages/${encodeURIComponent(id)}/reply`, 'POST', data)
+}
+
+function synthesizeSpeech(data) {
+  return request('/api/tools/tts', 'POST', data)
+}
+
+function getRhymeInfo(text) {
+  return request('/api/tools/rhyme', 'POST', { text: text })
+}
+
 function parseContent(content) {
   if (!content) return []
   content = content.replace(/\r/g, '')
@@ -137,10 +223,47 @@ function parseContent(content) {
     }
     return [str]
   } catch (e) {
-    return content.split(/[，。！？；：、】【\n]/).filter(function(s) {
+    if (content.indexOf('\n') !== -1) {
+      return content.split('\n').filter(function(s) {
+        return s.trim()
+      })
+    }
+    return [content].filter(function(s) {
       return s.trim()
     })
   }
+}
+
+function parseSentences(content) {
+  if (!content) return []
+  if (Array.isArray(content)) {
+    content = content.join('')
+  } else {
+    content = String(content)
+    try {
+      const parsed = JSON.parse(content)
+      if (Array.isArray(parsed)) {
+        content = parsed.join('')
+      } else {
+        content = String(parsed)
+      }
+    } catch (e) {
+      // keep original string
+    }
+  }
+
+  content = content.replace(/\r/g, '')
+  return content
+    .split('。')
+    .map(function(part) {
+      return part.trim()
+    })
+    .filter(function(part) {
+      return part.length > 0
+    })
+    .map(function(part) {
+      return part + '。'
+    })
 }
 
 function parseTags(tags) {
@@ -165,15 +288,34 @@ module.exports = {
   getAllTags,
   getDynasties,
   getAuthors,
+  getAppConfig,
   getAuthorByName,
   getPinyin,
   getUserProfile,
   registerUser,
+  updateRainPushPreference,
   getFavorites,
   getFavoriteStatus,
   toggleFullFavorite,
   toggleSentenceFavorite,
   deleteFavorite,
+  getExcerpts,
+  addExcerpt,
+  updateExcerpt,
+  deleteExcerpt,
+  getUsageSummary,
+  getBoatMessages,
+  getBoatMyMessages,
+  getBoatCollectedMessages,
+  getBoatRecentReceivedMessages,
+  getBoatThread,
+  publishBoatMessage,
+  receiveBoatMessage,
+  collectBoatMessage,
+  replyBoatMessage,
+  synthesizeSpeech,
+  getRhymeInfo,
   parseContent,
+  parseSentences,
   parseTags
 }

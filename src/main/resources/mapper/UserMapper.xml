@@ -7,19 +7,21 @@
         <result property="openId" column="open_id"/>
         <result property="nickname" column="nickname"/>
         <result property="avatarUrl" column="avatar_url"/>
+        <result property="rainPushEnabled" column="rain_push_enabled"/>
         <result property="createdAt" column="created_at"/>
         <result property="updatedAt" column="updated_at"/>
     </resultMap>
 
     <insert id="insert" parameterType="com.tencent.wxcloudrun.model.User">
-        INSERT INTO users (id, open_id, nickname, avatar_url, created_at, updated_at)
-        VALUES (#{id}, #{openId}, #{nickname}, #{avatarUrl}, #{createdAt}, #{updatedAt})
+        INSERT INTO users (id, open_id, nickname, avatar_url, rain_push_enabled, created_at, updated_at)
+        VALUES (#{id}, #{openId}, #{nickname}, #{avatarUrl}, #{rainPushEnabled}, #{createdAt}, #{updatedAt})
     </insert>
 
     <update id="update" parameterType="com.tencent.wxcloudrun.model.User">
         UPDATE users
         SET nickname = #{nickname},
             avatar_url = #{avatarUrl},
+            rain_push_enabled = #{rainPushEnabled},
             updated_at = #{updatedAt}
         WHERE open_id = #{openId}
     </update>

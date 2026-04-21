@@ -3,7 +3,6 @@ const cc = require('../../utils/chinese-convert')
 
 Page({
   data: {
-    activeType: 'FULL',
     favorites: [],
     loading: false,
     useTraditional: false,
@@ -41,13 +40,6 @@ Page({
     })
   },
 
-  switchType(e) {
-    const type = e.currentTarget.dataset.type
-    if (!type || type === this.data.activeType) return
-    this.setData({ activeType: type })
-    this.loadFavorites()
-  },
-
   loadFavorites() {
     if (this.data.loading) return Promise.resolve()
     if (!this.data.loggedIn) {
@@ -56,8 +48,7 @@ Page({
     }
 
     this.setData({ loading: true })
-    const type = this.data.activeType === 'FULL' ? 'FULL' : 'SENTENCE'
-    return api.getFavorites(type).then((list) => {
+    return api.getFavorites('FULL').then((list) => {
       const useT = this.data.useTraditional
       const favorites = (list || []).map((item) => this.formatFavorite(item, useT))
       this.setData({ favorites: favorites })
@@ -73,14 +64,12 @@ Page({
     const poemTitle = cc.convert(item.poemTitle || '', useT)
     const poemAuthor = cc.convert(item.poemAuthor || '', useT)
     const poemDynasty = cc.convert(item.poemDynasty || '', useT)
-    const sentenceText = cc.convert(item.sentenceText || '', useT)
     const previewLines = api.parseContent(item.poemContent || '')
     const preview = previewLines.slice(0, 2).join('')
     return Object.assign({}, item, {
       poemTitle: poemTitle,
       poemAuthor: poemAuthor,
       poemDynasty: poemDynasty,
-      sentenceText: sentenceText,
       preview: cc.convert(preview, useT)
     })
   },
@@ -112,5 +101,9 @@ Page({
 
   goToLogin() {
     wx.switchTab({ url: '/pages/profile/index' })
+  },
+
+  goToExcerpts() {
+    wx.navigateTo({ url: '/pages/excerpt/index' })
   }
 })

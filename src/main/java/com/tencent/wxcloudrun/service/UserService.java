@@ -25,6 +25,9 @@ public class UserService {
         if (existing != null) {
             existing.setNickname(nickname);
             existing.setAvatarUrl(avatarUrl);
+            if (existing.getRainPushEnabled() == null) {
+                existing.setRainPushEnabled(Boolean.FALSE);
+            }
             existing.setUpdatedAt(now);
             userMapper.update(existing);
             return userMapper.findByOpenId(openId);
@@ -35,9 +38,21 @@ public class UserService {
         user.setOpenId(openId);
         user.setNickname(nickname);
         user.setAvatarUrl(avatarUrl);
+        user.setRainPushEnabled(Boolean.FALSE);
         user.setCreatedAt(now);
         user.setUpdatedAt(now);
         userMapper.insert(user);
         return user;
+    }
+
+    public User updateRainPushEnabled(String openId, boolean enabled) {
+        User existing = userMapper.findByOpenId(openId);
+        if (existing == null) {
+            return null;
+        }
+        existing.setRainPushEnabled(enabled);
+        existing.setUpdatedAt(LocalDateTime.now());
+        userMapper.update(existing);
+        return userMapper.findByOpenId(openId);
     }
 }

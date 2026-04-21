@@ -1,6 +1,7 @@
 // pages/discover/index.js
 const api = require('../../utils/api')
 const cc = require('../../utils/chinese-convert')
+const usage = require('../../utils/usage')
 
 Page({
   data: {
@@ -159,6 +160,7 @@ Page({
   onSearch() {
     this._rawPoems = []
     this.setData({ page: 1, poems: [], hasMore: true })
+    usage.recordSearch()
     this.loadPoems()
   },
 
@@ -176,6 +178,7 @@ Page({
       selectedDynasty: selected,
       page: 1, poems: [], hasMore: true
     })
+    usage.recordSearch()
     this.loadPoems()
   },
 
@@ -188,6 +191,7 @@ Page({
       selectedTag: selected,
       page: 1, poems: [], hasMore: true
     })
+    usage.recordSearch()
     this.loadPoems()
   },
 
@@ -200,6 +204,7 @@ Page({
       keyword: '',
       page: 1, poems: [], hasMore: true
     })
+    usage.recordSearch()
     this.loadPoems()
   },
 

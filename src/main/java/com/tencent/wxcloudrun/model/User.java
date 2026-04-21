@@ -13,6 +13,7 @@ public class User {
     private String openId;
     private String nickname;
     private String avatarUrl;
+    private Boolean rainPushEnabled;
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;
 }

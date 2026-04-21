@@ -1,0 +1,226 @@
+.excerpt-page {
+  min-height: 100vh;
+  padding: 24rpx;
+  box-sizing: border-box;
+  background: linear-gradient(180deg, #F5F3F0 0%, #FDF8F0 100%);
+}
+
+.header {
+  padding: 24rpx 12rpx 16rpx;
+}
+
+.title {
+  display: block;
+  font-size: 44rpx;
+  font-weight: 600;
+  color: #3A4A3F;
+}
+
+.subtitle {
+  display: block;
+  margin-top: 8rpx;
+  font-size: 24rpx;
+  color: #7A8A7F;
+}
+
+.empty-state,
+.loading {
+  margin-top: 80rpx;
+  text-align: center;
+  padding: 60rpx 32rpx;
+  color: #7A8A7F;
+}
+
+.empty-title {
+  display: block;
+  font-size: 32rpx;
+  color: #3A4A3F;
+}
+
+.empty-desc {
+  display: block;
+  margin-top: 14rpx;
+  font-size: 24rpx;
+  line-height: 1.8;
+}
+
+.empty-btn {
+  margin: 36rpx auto 0;
+  width: 260rpx;
+  padding: 18rpx 0;
+  border-radius: 999rpx;
+  background: #3A4A3F;
+  color: #FFFFFF;
+}
+
+.excerpt-list {
+  display: flex;
+  flex-direction: column;
+  gap: 20rpx;
+}
+
+.excerpt-card {
+  padding: 28rpx;
+}
+
+.excerpt-meta {
+  display: flex;
+  flex-direction: column;
+  gap: 8rpx;
+}
+
+.excerpt-title-text {
+  font-size: 34rpx;
+  font-weight: 600;
+  color: #3A4A3F;
+}
+
+.excerpt-author {
+  font-size: 24rpx;
+  color: #7A8A7F;
+}
+
+.excerpt-sentence-box {
+  margin-top: 20rpx;
+}
+
+.excerpt-sentence {
+  display: block;
+  font-size: 30rpx;
+  line-height: 1.8;
+  color: #C0694A;
+}
+
+.excerpt-note {
+  margin-top: 18rpx;
+  padding: 18rpx 20rpx;
+  border-radius: 18rpx;
+  background: #FAF4EC;
+}
+
+.excerpt-note-label {
+  display: block;
+  font-size: 22rpx;
+  color: #A07C4A;
+  margin-bottom: 8rpx;
+}
+
+.excerpt-note-text {
+  display: block;
+  font-size: 26rpx;
+  line-height: 1.7;
+  color: #5A6A5F;
+}
+
+.excerpt-preview {
+  margin-top: 16rpx;
+  font-size: 24rpx;
+  line-height: 1.7;
+}
+
+.excerpt-actions {
+  display: flex;
+  gap: 16rpx;
+  margin-top: 24rpx;
+}
+
+.action-btn {
+  flex: 1;
+  text-align: center;
+  padding: 18rpx 0;
+  border-radius: 999rpx;
+}
+
+.action-btn.outline {
+  background: #FFFFFF;
+  border: 1rpx solid #E8E4DF;
+  color: #3A4A3F;
+}
+
+.action-btn.solid {
+  background: #3A4A3F;
+  color: #FFFFFF;
+}
+
+.edit-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.45);
+  z-index: 1100;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 40rpx;
+}
+
+.edit-modal {
+  width: 100%;
+  background: #FDF8F0;
+  border-radius: 24rpx;
+  padding: 36rpx;
+  box-sizing: border-box;
+}
+
+.edit-title {
+  display: block;
+  font-size: 34rpx;
+  font-weight: 600;
+  color: #3A4A3F;
+}
+
+.edit-sentence {
+  display: block;
+  margin-top: 18rpx;
+  font-size: 28rpx;
+  line-height: 1.8;
+  color: #5A6A5F;
+}
+
+.edit-note-input {
+  margin-top: 24rpx;
+  min-height: 180rpx;
+  width: 100%;
+  box-sizing: border-box;
+  padding: 20rpx;
+  border-radius: 18rpx;
+  background: #FFFFFF;
+  border: 1rpx solid #E8E4DF;
+  font-size: 26rpx;
+  color: #3A4A3F;
+}
+
+.edit-actions {
+  display: flex;
+  gap: 20rpx;
+  margin-top: 28rpx;
+}
+
+.edit-cancel,
+.edit-save {
+  flex: 1;
+  text-align: center;
+  padding: 18rpx 0;
+  border-radius: 999rpx;
+}
+
+.edit-cancel {
+  background: #FFFFFF;
+  border: 1rpx solid #E8E4DF;
+}
+
+.edit-save {
+  background: #3A4A3F;
+}
+
+.edit-cancel text,
+.edit-save text {
+  font-size: 26rpx;
+}
+
+.edit-cancel text {
+  color: #3A4A3F;
+}
+
+.edit-save text {
+  color: #FFFFFF;
+}

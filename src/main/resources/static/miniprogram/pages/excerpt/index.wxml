@@ -1,0 +1,76 @@
+<view class="excerpt-page">
+  <view class="header">
+    <text class="title">摘录本</text>
+    <text class="subtitle">只收一句，慢慢存。</text>
+  </view>
+
+  <view class="empty-state" wx:if="{{!loggedIn}}">
+    <text class="empty-title">登录后可使用摘录本</text>
+    <text class="empty-desc">前往“我的”页面完成登录后，即可收藏句子并添加私人批注。</text>
+    <view class="empty-btn" bindtap="goToLogin">
+      <text>去登录</text>
+    </view>
+  </view>
+
+  <view class="loading" wx:if="{{loggedIn && loading}}">
+    <text>加载中...</text>
+  </view>
+
+  <view class="empty-state" wx:if="{{loggedIn && !loading && excerpts.length === 0}}">
+    <text class="empty-title">这里还没有摘录</text>
+    <text class="empty-desc">在诗词详情页长按句子，点击“摘录”即可加入摘录本。</text>
+  </view>
+
+  <view class="excerpt-list" wx:if="{{loggedIn && !loading && excerpts.length > 0}}">
+    <view class="excerpt-card card fade-in" wx:for="{{excerpts}}" wx:key="id">
+      <view class="excerpt-meta">
+        <text class="excerpt-title-text">{{item.poemTitle}}</text>
+        <text class="excerpt-author">{{item.poemDynasty}} · {{item.poemAuthor}}</text>
+      </view>
+
+      <view class="excerpt-sentence-box" bindtap="goToDetail" data-id="{{item.poemId}}">
+        <text class="excerpt-sentence">{{item.sentenceText}}</text>
+      </view>
+
+      <view class="excerpt-note" wx:if="{{item.note}}">
+        <text class="excerpt-note-label">批注</text>
+        <text class="excerpt-note-text">{{item.note}}</text>
+      </view>
+
+      <view class="excerpt-preview text-muted" wx:if="{{item.preview}}">
+        <text>{{item.preview}}</text>
+      </view>
+
+      <view class="excerpt-actions">
+        <view class="action-btn outline" bindtap="openEditModal" data-id="{{item.id}}">
+          <text>编辑批注</text>
+        </view>
+        <view class="action-btn solid" bindtap="deleteExcerpt" data-id="{{item.id}}">
+          <text>删除</text>
+        </view>
+      </view>
+    </view>
+  </view>
+
+  <view class="edit-overlay" wx:if="{{showEditModal}}" catchtap="closeEditModal">
+    <view class="edit-modal" catchtap="">
+      <text class="edit-title">编辑批注</text>
+      <text class="edit-sentence">{{editingExcerpt.sentenceText}}</text>
+      <textarea
+        class="edit-note-input"
+        placeholder="写一句新的批注"
+        maxlength="140"
+        value="{{editNote}}"
+        bindinput="onEditNoteInput"
+      />
+      <view class="edit-actions">
+        <view class="edit-cancel" bindtap="closeEditModal">
+          <text>取消</text>
+        </view>
+        <view class="edit-save" bindtap="saveEdit">
+          <text>{{saving ? '保存中...' : '保存'}}</text>
+        </view>
+      </view>
+    </view>
+  </view>
+</view>

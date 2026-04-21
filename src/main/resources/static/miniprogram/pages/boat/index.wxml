@@ -1,0 +1,207 @@
+<view class="boat-page">
+  <view class="login-card card" wx:if="{{!isLoggedIn}}">
+    <text class="section-title">先完成登录</text>
+    <text class="empty-tip">诗舟需要一个身份，才能记住你的投递、收藏与回复。</text>
+    <view class="compose-actions">
+      <view class="btn-primary compose-btn" bindtap="goToProfile">
+        <text>去登录</text>
+      </view>
+    </view>
+  </view>
+
+  <view class="header">
+    <text class="title">诗舟漂流</text>
+    <text class="subtitle">匿名、无关注、无评论，把一句诗放进舟里，再从江面收取一枚只言片语。</text>
+  </view>
+
+  <view class="compose-card card">
+    <text class="section-title">放入舟中</text>
+    <textarea
+      class="compose-textarea"
+      placeholder="写下一句诗，或一句想轻轻放出的心事"
+      maxlength="160"
+      value="{{draftText}}"
+      bindinput="onDraftInput"
+    ></textarea>
+    <input
+      class="compose-input"
+      placeholder="署名，默认为 听雨客"
+      value="{{draftSignature}}"
+      bindinput="onSignatureInput"
+    />
+    <view class="compose-actions">
+      <view class="btn-secondary compose-btn" bindtap="publishMessage">
+        <text>{{publishing ? '放入中...' : '放入舟中'}}</text>
+      </view>
+      <view class="btn-primary compose-btn" bindtap="receiveMessage">
+        <text>{{receiving ? '收取中...' : '收取一枚诗笺'}}</text>
+      </view>
+    </view>
+  </view>
+
+  <view class="receive-card card" wx:if="{{receivedMessage}}">
+    <view class="row-between">
+      <text class="section-title">今日偶遇</text>
+      <text class="small-link" bindtap="collectCurrentMessage">{{collecting ? '收藏中...' : '收藏'}}</text>
+    </view>
+    <view class="received-preview" bindtap="openThread" data-id="{{receivedMessage.id}}">
+      <text class="message-drift">{{receivedMessage.driftLabel}}</text>
+      <text class="received-content">{{receivedMessage.content}}</text>
+      <text class="received-signature">—— {{receivedMessage.signature}}</text>
+      <view class="received-meta">
+        <text>{{receivedMessage.createdAtText}}</text>
+        <text wx:if="{{receivedMessage.replyCount > 0}}">回复 {{receivedMessage.replyCount}}</text>
+      </view>
+    </view>
+    <view class="receive-actions">
+      <view class="outline-btn" bindtap="copyMessage">
+        <text>复制</text>
+      </view>
+      <view class="outline-btn" bindtap="openReplyModal">
+        <text>回复一次</text>
+      </view>
+    </view>
+  </view>
+
+  <view class="summary-card card" wx:if="{{recentReceivedMessages.length > 0}}">
+    <text class="section-title">最近收到的 3 枚诗笺</text>
+    <view class="summary-list">
+      <view class="summary-item" wx:for="{{recentReceivedMessages}}" wx:key="id" bindtap="openThread" data-id="{{item.id}}">
+        <view class="summary-topline">
+          <text class="message-drift">{{item.driftLabel}}</text>
+          <text class="summary-time">{{item.createdAtText}}</text>
+        </view>
+        <text class="summary-content">{{item.content}}</text>
+        <text class="summary-signature">—— {{item.signature}}</text>
+      </view>
+    </view>
+  </view>
+
+  <view class="tabs card">
+    <view class="tab-item {{currentTab === 'pool' ? 'active' : ''}}" data-tab="pool" bindtap="switchTab">
+      <text>舟池</text>
+    </view>
+    <view class="tab-item {{currentTab === 'collected' ? 'active' : ''}}" data-tab="collected" bindtap="switchTab">
+      <text>收藏</text>
+    </view>
+    <view class="tab-item {{currentTab === 'mine' ? 'active' : ''}}" data-tab="mine" bindtap="switchTab">
+      <text>我的</text>
+    </view>
+  </view>
+
+  <view class="list-card card" wx:if="{{currentTab === 'pool'}}">
+    <text class="section-title">舟池诗笺</text>
+    <view class="message-list" wx:if="{{poolMessages.length > 0}}">
+      <view class="message-item" wx:for="{{poolMessages}}" wx:key="id" data-id="{{item.id}}" bindtap="openThread">
+        <text class="message-drift">{{item.driftLabel}}</text>
+        <text class="message-content">{{item.content}}</text>
+        <text class="message-signature">—— {{item.signature}}</text>
+        <view class="message-meta">
+          <text>{{item.createdAtText}}</text>
+          <text wx:if="{{item.replyCount > 0}}">回复 {{item.replyCount}}</text>
+        </view>
+      </view>
+    </view>
+    <text class="empty-tip" wx:else>暂时还没有新的诗笺，先放入一枚吧。</text>
+  </view>
+
+  <view class="list-card card" wx:if="{{currentTab === 'collected'}}">
+    <text class="section-title">我的收藏</text>
+    <view class="message-list" wx:if="{{collectedMessages.length > 0}}">
+      <view class="message-item" wx:for="{{collectedMessages}}" wx:key="id" data-id="{{item.id}}" bindtap="openThread">
+        <text class="message-drift">{{item.driftLabel}}</text>
+        <text class="message-content">{{item.content}}</text>
+        <text class="message-signature">—— {{item.signature}}</text>
+        <view class="message-meta">
+          <text>{{item.createdAtText}}</text>
+        </view>
+      </view>
+    </view>
+    <text class="empty-tip" wx:else>还没有收藏过诗笺，先收取一枚试试。</text>
+  </view>
+
+  <view class="list-card card" wx:if="{{currentTab === 'mine'}}">
+    <text class="section-title">我的投递</text>
+    <view class="message-list" wx:if="{{mineMessages.length > 0}}">
+      <view class="message-item" wx:for="{{mineMessages}}" wx:key="id" data-id="{{item.id}}" bindtap="openThread">
+        <text class="message-drift">{{item.driftLabel}}</text>
+        <text class="message-content">{{item.content}}</text>
+        <text class="message-signature">—— {{item.signature}}</text>
+        <view class="message-meta">
+          <text>{{item.createdAtText}}</text>
+          <text wx:if="{{item.replyCount > 0}}">回复 {{item.replyCount}}</text>
+        </view>
+      </view>
+    </view>
+    <text class="empty-tip" wx:else>你还没有投递过诗笺。</text>
+  </view>
+
+  <view class="modal-mask" wx:if="{{selectedThread}}">
+    <view class="modal-panel thread-panel">
+      <view class="row-between">
+        <text class="section-title">舟中来信</text>
+        <text class="small-link" bindtap="closeThread">关闭</text>
+      </view>
+      <view class="thread-root" wx:if="{{selectedThread.root}}">
+        <text class="message-drift">{{selectedThread.root.driftLabel}}</text>
+        <text class="thread-content">{{selectedThread.root.content}}</text>
+        <text class="thread-signature">—— {{selectedThread.root.signature}}</text>
+        <view class="thread-info">
+          <text>{{selectedThread.root.createdAtText}}</text>
+          <text wx:if="{{selectedThread.replies.length > 0}}">回复 {{selectedThread.replies.length}}</text>
+        </view>
+        <view class="thread-actions">
+          <view class="outline-btn" bindtap="copyMessage">
+            <text>复制</text>
+          </view>
+          <view class="outline-btn" bindtap="collectCurrentMessage">
+            <text>{{collecting ? '收藏中...' : '收藏'}}</text>
+          </view>
+          <view class="outline-btn" bindtap="openReplyModal">
+            <text>回复一次</text>
+          </view>
+        </view>
+      </view>
+
+      <view class="reply-list" wx:if="{{selectedThread.replies.length > 0}}">
+        <text class="reply-title">回复</text>
+        <view class="reply-item" wx:for="{{selectedThread.replies}}" wx:key="id">
+          <text class="message-drift">{{item.driftLabel}}</text>
+          <text class="reply-content">{{item.content}}</text>
+          <text class="reply-signature">—— {{item.signature}}</text>
+        </view>
+      </view>
+      <text class="empty-tip" wx:else>还没有回复，让这枚诗笺先静一会儿。</text>
+    </view>
+  </view>
+
+  <view class="modal-mask" wx:if="{{showReplyModal}}">
+    <view class="modal-panel reply-panel">
+      <view class="row-between">
+        <text class="section-title">匿名回复</text>
+        <text class="small-link" bindtap="closeReplyModal">关闭</text>
+      </view>
+      <textarea
+        class="reply-textarea"
+        placeholder="写下一句轻轻的回复"
+        maxlength="160"
+        value="{{replyText}}"
+        bindinput="onReplyInput"
+      ></textarea>
+      <input
+        class="compose-input"
+        placeholder="署名，默认为 听雨客"
+        value="{{replySignature}}"
+        bindinput="onReplySignatureInput"
+      />
+      <view class="compose-actions">
+        <view class="btn-secondary compose-btn" bindtap="closeReplyModal">
+          <text>取消</text>
+        </view>
+        <view class="btn-primary compose-btn" bindtap="submitReply">
+          <text>{{replying ? '回复中...' : '确认回复'}}</text>
+        </view>
+      </view>
+    </view>
+  </view>
+</view>

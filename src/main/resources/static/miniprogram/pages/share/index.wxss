@@ -1,29 +1,55 @@
-/* pages/share/index.wxss */
-
 .share-page {
   min-height: 100vh;
-  background: #F5F3F0;
+  background: linear-gradient(180deg, #F5F3F0 0%, #EEE7DE 100%);
   display: flex;
   flex-direction: column;
   padding-bottom: calc(40rpx + env(safe-area-inset-bottom));
+  box-sizing: border-box;
 }
 
-/* Canvas 预览区 */
+.hero-section {
+  padding: 34rpx 32rpx 10rpx;
+}
+
+.page-title {
+  display: block;
+  font-size: 38rpx;
+  font-weight: 600;
+  color: #3A4A3F;
+}
+
+.page-subtitle {
+  display: block;
+  margin-top: 10rpx;
+  font-size: 24rpx;
+  line-height: 1.8;
+  color: #7A8A7F;
+}
+
+.preview-panel {
+  margin: 20rpx 32rpx 0;
+  padding: 24rpx;
+  border-radius: 28rpx;
+  background: rgba(255, 255, 255, 0.72);
+  box-shadow: 0 16rpx 40rpx rgba(58, 74, 63, 0.08);
+}
+
 .canvas-container {
   flex-shrink: 0;
   display: flex;
   align-items: center;
   justify-content: center;
-  padding: 40rpx;
+  padding: 0;
   position: relative;
 }
 
 .canvas-wrap {
-  width: 560rpx;
-  height: 750rpx; /* fallback，实际由JS动态计算 */
-  border-radius: 16rpx;
+  width: 100%;
+  height: 750rpx;
+  border-radius: 24rpx;
   overflow: hidden;
-  box-shadow: 0 12rpx 48rpx rgba(58, 74, 63, 0.15);
+  box-shadow: inset 0 0 0 1rpx rgba(58, 74, 63, 0.06);
+  background: rgba(255, 255, 255, 0.66);
 }
 
 .share-canvas {
@@ -42,9 +68,8 @@
   justify-content: center;
 }
 
-/* 模板选择区 */
 .template-section {
-  padding: 0 32rpx 24rpx;
+  padding: 28rpx 32rpx 18rpx;
 }
 
 .section-title {
@@ -101,11 +126,10 @@
   font-weight: 500;
 }
 
-/* 操作按钮 */
 .action-section {
   display: flex;
   gap: 24rpx;
-  padding: 0 32rpx;
+  padding: 14rpx 32rpx 0;
 }
 
 .save-btn {
@@ -126,4 +150,41 @@
 
 .share-friend-btn::after {
   border: none;
+}
+
+.calendar-meta {
+  display: block;
+  font-size: 24rpx;
+  color: #A07C4A;
+  margin-top: 8rpx;
+}
+
+.preview-footer {
+  margin-top: 22rpx;
+  padding: 18rpx 6rpx 0;
+}
+
+.preview-meta {
+  display: flex;
+  flex-direction: column;
+  gap: 6rpx;
+}
+
+.preview-title {
+  font-size: 28rpx;
+  font-weight: 600;
+  color: #3A4A3F;
+}
+
+.preview-desc {
+  font-size: 22rpx;
+  color: #A07C4A;
+}
+
+.preview-excerpt {
+  display: block;
+  margin-top: 14rpx;
+  font-size: 24rpx;
+  line-height: 1.7;
+  color: #5A6A5F;
 }

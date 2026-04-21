@@ -27,7 +27,7 @@ public class UserController {
             User user = userService.getUserByOpenId(openId);
             return ApiResponse.success(user);
         } catch (Exception e) {
-            return ApiResponse.error("获取用户信息失败：" + e.getMessage());
+            return ApiResponse.error("获取用户信息失败: " + e.getMessage());
         }
     }
 
@@ -46,7 +46,29 @@ public class UserController {
             User user = userService.registerOrUpdate(openId, nickname.trim(), avatarUrl);
             return ApiResponse.success("注册成功", user);
         } catch (Exception e) {
-            return ApiResponse.error("注册失败：" + e.getMessage());
+            return ApiResponse.error("注册失败: " + e.getMessage());
+        }
+    }
+
+    @PostMapping("/rain-push")
+    public ApiResponse<User> updateRainPush(@RequestBody Map<String, Object> body, HttpServletRequest request) {
+        try {
+            String openId = request.getHeader("X-WX-OPENID");
+            if (openId == null || openId.isEmpty()) {
+                return ApiResponse.error(401, "未获取到用户身份");
+            }
+            Object enabledValue = body.get("enabled");
+            boolean enabled = enabledValue instanceof Boolean
+                    ? (Boolean) enabledValue
+                    : "true".equalsIgnoreCase(String.valueOf(enabledValue))
+                    || "1".equals(String.valueOf(enabledValue));
+            User user = userService.updateRainPushEnabled(openId, enabled);
+            if (user == null) {
+                return ApiResponse.notFound("用户不存在");
+            }
+            return ApiResponse.success("更新成功", user);
+        } catch (Exception e) {
+            return ApiResponse.error("更新雨丝设置失败: " + e.getMessage());
         }
     }
 }

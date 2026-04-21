@@ -19,21 +19,27 @@ public class MetaController {
     @GetMapping("/dynasties")
     public ApiResponse<List<Map<String, Object>>> getDynasties() {
         try {
-            List<Map<String, Object>> dynasties = metaService.getDynastyList();
-            return ApiResponse.success(dynasties);
+            return ApiResponse.success(metaService.getDynastyList());
         } catch (Exception e) {
-            return ApiResponse.error("获取朝代列表失败：" + e.getMessage());
+            return ApiResponse.error("获取朝代列表失败: " + e.getMessage());
         }
     }
 
     @GetMapping("/authors")
-    public ApiResponse<List<Map<String, Object>>> getAuthors(
-            @RequestParam(required = false) String dynasty) {
+    public ApiResponse<List<Map<String, Object>>> getAuthors(@RequestParam(required = false) String dynasty) {
         try {
-            List<Map<String, Object>> authors = metaService.getAuthorList(dynasty);
-            return ApiResponse.success(authors);
+            return ApiResponse.success(metaService.getAuthorList(dynasty));
         } catch (Exception e) {
-            return ApiResponse.error("获取作者列表失败：" + e.getMessage());
+            return ApiResponse.error("获取作者列表失败: " + e.getMessage());
+        }
+    }
+
+    @GetMapping("/config")
+    public ApiResponse<Map<String, Object>> getConfig() {
+        try {
+            return ApiResponse.success(metaService.getAppConfig());
+        } catch (Exception e) {
+            return ApiResponse.error("获取配置失败: " + e.getMessage());
         }
     }
 }

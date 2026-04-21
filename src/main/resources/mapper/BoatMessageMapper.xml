@@ -1,0 +1,105 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.tencent.wxcloudrun.dao.BoatMessageMapper">
+
+    <resultMap id="BoatMessageResultMap" type="com.tencent.wxcloudrun.model.BoatMessage">
+        <id property="id" column="id"/>
+        <result property="userId" column="user_id"/>
+        <result property="content" column="content"/>
+        <result property="signature" column="signature"/>
+        <result property="parentMessageId" column="parent_message_id"/>
+        <result property="replyCount" column="reply_count"/>
+        <result property="createdAt" column="created_at"/>
+        <result property="updatedAt" column="updated_at"/>
+    </resultMap>
+
+    <insert id="insert" parameterType="com.tencent.wxcloudrun.model.BoatMessage">
+        INSERT INTO boat_messages (
+            id, user_id, content, signature, parent_message_id, reply_count, created_at, updated_at
+        ) VALUES (
+            #{id}, #{userId}, #{content}, #{signature}, #{parentMessageId}, #{replyCount}, #{createdAt}, #{updatedAt}
+        )
+    </insert>
+
+    <select id="findById" resultMap="BoatMessageResultMap">
+        SELECT *
+        FROM boat_messages
+        WHERE id = #{id}
+          AND is_deleted = 0
+        LIMIT 1
+    </select>
+
+    <select id="findLatest" resultMap="BoatMessageResultMap">
+        SELECT *
+        FROM boat_messages
+        WHERE is_deleted = 0
+          AND parent_message_id IS NULL
+          AND user_id <> #{userId}
+        ORDER BY created_at DESC
+        LIMIT #{limit}
+    </select>
+
+    <select id="findByUserId" resultMap="BoatMessageResultMap">
+        SELECT *
+        FROM boat_messages
+        WHERE is_deleted = 0
+          AND user_id = #{userId}
+        ORDER BY created_at DESC
+        LIMIT #{limit}
+    </select>
+
+    <select id="findCollectedByUserId" resultMap="BoatMessageResultMap">
+        SELECT m.*
+        FROM boat_matches bm
+        INNER JOIN boat_messages m ON m.id = bm.message_id
+        WHERE bm.user_id = #{userId}
+          AND bm.match_type = 'BOOKMARKED'
+          AND m.is_deleted = 0
+        ORDER BY bm.created_at DESC
+        LIMIT #{limit}
+    </select>
+
+    <select id="findRecentReceivedByUserId" resultMap="BoatMessageResultMap">
+        SELECT m.*
+        FROM boat_matches bm
+        INNER JOIN boat_messages m ON m.id = bm.message_id
+        WHERE bm.user_id = #{userId}
+          AND bm.match_type = 'RECEIVED'
+          AND m.is_deleted = 0
+        ORDER BY bm.created_at DESC
+        LIMIT #{limit}
+    </select>
+
+    <select id="findThread" resultMap="BoatMessageResultMap">
+        SELECT *
+        FROM boat_messages
+        WHERE is_deleted = 0
+          AND (id = #{rootId} OR parent_message_id = #{rootId})
+        ORDER BY created_at ASC
+    </select>
+
+    <select id="findAvailableCandidates" resultMap="BoatMessageResultMap">
+        SELECT m.*
+        FROM boat_messages m
+        WHERE m.is_deleted = 0
+          AND m.parent_message_id IS NULL
+          AND m.user_id <> #{userId}
+          AND NOT EXISTS (
+              SELECT 1
+              FROM boat_matches bm
+              WHERE bm.user_id = #{userId}
+                AND bm.message_id = m.id
+                AND bm.match_type = 'RECEIVED'
+          )
+        ORDER BY m.created_at DESC
+        LIMIT #{limit}
+    </select>
+
+    <update id="incrementReplyCount">
+        UPDATE boat_messages
+        SET reply_count = reply_count + 1,
+            updated_at = CURRENT_TIMESTAMP
+        WHERE id = #{id}
+    </update>
+
+</mapper>

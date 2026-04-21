@@ -16,3 +16,10 @@ mybatis:
   mapper-locations: classpath*:mapper/*Mapper.xml
   configuration:
     map-underscore-to-camel-case: true
+
+wechat:
+  appid: ${WECHAT_APPID:}
+  secret: ${WECHAT_SECRET:}
+  subscribe:
+    template-id: ${WECHAT_SUBSCRIBE_TEMPLATE_ID:pIleT1Y2QDm7fuGaHrRZ9X6GnP2ZCV0lbZoBVQJNiQo}
+    page: ${WECHAT_SUBSCRIBE_PAGE:pages/detail/index}

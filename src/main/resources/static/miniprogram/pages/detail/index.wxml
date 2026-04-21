@@ -10,8 +10,8 @@
     <text class="poem-title" bindlongpress="onLongPressTitle">{{poem.title}}</text>
     <text class="poem-meta" bindlongpress="onLongPressAuthor">{{poem.dynasty}} · {{poem.author}}</text>
     <view class="poem-body">
-      <block wx:for="{{contentLines}}" wx:for-item="line" wx:for-index="index" wx:key="index">
-        <text class="poem-line" bindlongpress="onLongPressLine" data-line="{{line}}" data-index="{{index}}">{{line}}</text>
+      <block wx:for="{{contentLines}}" wx:for-item="item" wx:for-index="index" wx:key="index">
+        <text class="poem-line {{item.isFavorite ? 'sentence-favorited' : ''}}" bindlongpress="onLongPressLine" data-line="{{item.text}}" data-index="{{index}}">{{item.text}}</text>
       </block>
     </view>
   </view>
@@ -19,7 +19,7 @@
   <view class="author-section" wx:if="{{authorInfo && authorInfo.description && !immersiveMode}}" catchtap="toggleAuthorBio">
     <view class="author-header">
       <text class="author-name">{{authorInfo.name}}</text>
-      <text class="author-arrow">{{showAuthorBio ? '收起' : '作者介绍'}}</text>
+      <text class="author-arrow">{{showAuthorBio ? '收起' : '展开'}}</text>
     </view>
     <view class="author-bio {{showAuthorBio ? 'expanded' : ''}}">
       <text class="author-bio-text">{{authorInfo.description}}</text>
@@ -67,6 +67,9 @@
   </view>
 
   <view class="bottom-bar" wx:if="{{poem && !immersiveMode}}">
+    <view class="bottom-btn voice-btn {{reading ? 'active' : ''}}" bindtap="toggleReading">
+      <text class="btn-label">{{reading ? '停止朗读' : (readingLoading ? '生成中...' : '语音朗读')}}</text>
+    </view>
     <view class="bottom-btn favorite-btn {{isFavoriteFull ? 'active' : ''}}" bindtap="toggleFullFavorite">
       <text class="btn-label">{{isFavoriteFull ? '已收藏全文' : '收藏全文'}}</text>
     </view>
@@ -78,14 +81,30 @@
     </button>
   </view>
 
+  <view class="rain-panel" wx:if="{{poem && immersiveMode}}">
+    <view class="rain-main {{rainPlaying ? 'active' : ''}}" bindtap="toggleRain">
+      <text class="rain-title">檐下雨</text>
+      <text class="rain-subtitle">{{rainPlaying ? '雨声渐起' : (rainLoading ? '准备中...' : '点击落雨')}}</text>
+    </view>
+    <scroll-view scroll-x class="rain-source-scroll">
+      <view class="rain-source-list">
+        <view class="rain-source-chip {{rainSourceIndex === index ? 'active' : ''}}"
+              wx:for="{{rainSources}}" wx:key="index"
+              bindtap="selectRainSource" data-index="{{index}}">
+          <text>{{item.name}}</text>
+        </view>
+      </view>
+    </scroll-view>
+  </view>
+
   <view class="immersive-hint" wx:if="{{immersiveMode}}">
-    <text>点击任意处退出沉浸模式</text>
+    <text>沉浸模式已开启，点正文可退出</text>
   </view>
 
   <view class="pinyin-overlay" wx:if="{{showPinyinModal}}" catchtap="closePinyinModal">
     <view class="pinyin-modal" catchtap="">
       <view class="pinyin-loading" wx:if="{{pinyinLoading}}">
-        <text>正在生成拼音...</text>
+        <text>正在获取拼音...</text>
       </view>
       <view class="pinyin-grid" wx:if="{{pinyinData && pinyinData.chars}}">
         <view class="pinyin-char-group" wx:for="{{pinyinData.chars}}" wx:key="index">
@@ -101,17 +120,62 @@
         </view>
       </view>
       <view class="pinyin-loading" wx:if="{{pinyinError}}">
-        <text>拼音获取失败，仍可复制原文</text>
+        <text>拼音暂不可用</text>
       </view>
       <view class="pinyin-actions">
         <view class="pinyin-copy-btn" bindtap="copyText">
-          <text>复制原文</text>
+          <text>复制</text>
         </view>
-        <view class="pinyin-fav-btn" wx:if="{{longPressType === 'sentence'}}" bindtap="toggleSentenceFavorite">
-          <text>{{sentenceFavoriteCollected ? '已收藏句子' : '收藏句子'}}</text>
+        <view class="pinyin-copy-btn rhyme-btn" wx:if="{{longPressType === 'sentence' || longPressType === 'text'}}" bindtap="lookupRhyme">
+          <text>韵部</text>
+        </view>
+        <view class="pinyin-fav-btn excerpt-btn" wx:if="{{longPressType === 'sentence'}}" bindtap="openExcerptModal">
+          <text>摘录</text>
         </view>
         <view class="pinyin-close-btn" bindtap="closePinyinModal">
           <text>关闭</text>
+        </view>
+      </view>
+    </view>
+  </view>
+
+  <view class="excerpt-overlay" wx:if="{{showExcerptModal}}" catchtap="closeExcerptModal">
+    <view class="excerpt-modal" catchtap="">
+      <text class="excerpt-title">摘录本</text>
+      <text class="excerpt-sentence">{{longPressText}}</text>
+      <textarea
+        class="excerpt-note-input"
+        placeholder="可选，写一句私人批注"
+        maxlength="140"
+        value="{{excerptNote}}"
+        bindinput="onExcerptNoteInput"
+      />
+      <view class="excerpt-actions">
+        <view class="excerpt-cancel" bindtap="closeExcerptModal">
+          <text>取消</text>
+        </view>
+        <view class="excerpt-save" bindtap="saveExcerpt">
+          <text>{{excerptSaving ? '保存中...' : '保存摘录'}}</text>
+        </view>
+      </view>
+    </view>
+  </view>
+
+  <view class="excerpt-overlay" wx:if="{{showRhymeModal}}" catchtap="closePinyinModal">
+    <view class="excerpt-modal" catchtap="">
+      <text class="excerpt-title">韵部</text>
+      <text class="excerpt-sentence">{{rhymeData.targetChar}} · {{rhymeData.pinyin}}</text>
+      <view class="rhyme-card" wx:if="{{rhymeLoading}}">
+        <text>查询中...</text>
+      </view>
+      <view class="rhyme-card" wx:if="{{rhymeData && !rhymeLoading}}">
+        <text class="rhyme-line">{{rhymeData.pingshui}}</text>
+        <text class="rhyme-line">{{rhymeData.cilin}}</text>
+        <text class="rhyme-note">{{rhymeData.note}}</text>
+      </view>
+      <view class="excerpt-actions">
+        <view class="excerpt-save" bindtap="closePinyinModal">
+          <text>知道了</text>
         </view>
       </view>
     </view>

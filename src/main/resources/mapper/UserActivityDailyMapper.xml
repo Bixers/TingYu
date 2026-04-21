@@ -1,0 +1,52 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.tencent.wxcloudrun.dao.UserActivityDailyMapper">
+
+    <resultMap id="UserActivityDailyResultMap" type="com.tencent.wxcloudrun.model.UserActivityDaily">
+        <id property="id" column="id"/>
+        <result property="userId" column="user_id"/>
+        <result property="activityDate" column="activity_date"/>
+        <result property="poemViews" column="poem_views"/>
+        <result property="searchCount" column="search_count"/>
+        <result property="excerptCount" column="excerpt_count"/>
+        <result property="favoriteCount" column="favorite_count"/>
+        <result property="createdAt" column="created_at"/>
+        <result property="updatedAt" column="updated_at"/>
+    </resultMap>
+
+    <insert id="insert" parameterType="com.tencent.wxcloudrun.model.UserActivityDaily">
+        INSERT INTO user_activity_daily (
+            id, user_id, activity_date, poem_views, search_count, excerpt_count, favorite_count, created_at, updated_at
+        ) VALUES (
+            #{id}, #{userId}, #{activityDate}, #{poemViews}, #{searchCount}, #{excerptCount}, #{favoriteCount}, #{createdAt}, #{updatedAt}
+        )
+    </insert>
+
+    <update id="update" parameterType="com.tencent.wxcloudrun.model.UserActivityDaily">
+        UPDATE user_activity_daily
+        SET poem_views = #{poemViews},
+            search_count = #{searchCount},
+            excerpt_count = #{excerptCount},
+            favorite_count = #{favoriteCount},
+            updated_at = #{updatedAt}
+        WHERE id = #{id}
+    </update>
+
+    <select id="findByUserIdAndDate" resultMap="UserActivityDailyResultMap">
+        SELECT *
+        FROM user_activity_daily
+        WHERE user_id = #{userId}
+          AND activity_date = #{activityDate}
+        LIMIT 1
+    </select>
+
+    <select id="findRecentByUserId" resultMap="UserActivityDailyResultMap">
+        SELECT *
+        FROM user_activity_daily
+        WHERE user_id = #{userId}
+        ORDER BY activity_date DESC
+        LIMIT #{limit}
+    </select>
+
+</mapper>
+
