@@ -67,6 +67,7 @@ Page({
     poem: null,
     contentLines: [],
     currentTemplate: 0,
+    currentTemplateName: '素纸',
     templates: TEMPLATES,
     saving: false,
     canvasReady: false,
@@ -94,18 +95,16 @@ Page({
         author: cc.convert(poem.author, useT),
         dynasty: cc.convert(poem.dynasty, useT)
       })
-      const normalLines = api.parseContent(poem.content).map(function(line) {
-        return cc.convert(line, useT)
-      })
-      const sentenceLines = api.parseSentences(poem.content).map(function(line) {
-        return cc.convert(line, useT)
-      })
-      const calendarInfo = calendar.getLunarDateLabel(new Date())
+
+      const normalLines = api.parseContent(poem.content).map((line) => cc.convert(line, useT))
+      const sentenceLines = api.parseSentences(poem.content).map((line) => cc.convert(line, useT))
+      const lunarInfo = calendar.getLunarDateLabel(new Date())
       const calendarLabel = calendar.getPoemCalendarLabel(new Date())
       const calendarExcerpt = this.pickCalendarExcerpt(displayPoem, sentenceLines, normalLines)
+
       const canvasStyleHeight = this.mode === 'calendar'
-        ? 640
-        : this.calcCanvasHeight(normalLines)
+        ? this.calcCalendarCanvasHeight(displayPoem, calendarExcerpt)
+        : this.calcNormalCanvasHeight(normalLines)
 
       this.setData({
         poem: displayPoem,
@@ -113,7 +112,8 @@ Page({
         calendarMode: this.mode === 'calendar',
         calendarLabel: calendarLabel,
         calendarExcerpt: calendarExcerpt,
-        calendarDateLabel: `${calendarInfo.yearLabel}${calendarInfo.monthLabel}${calendarInfo.dayLabel}`,
+        calendarDateLabel: `${lunarInfo.yearLabel}${lunarInfo.monthLabel}${lunarInfo.dayLabel}`,
+        currentTemplateName: TEMPLATES[0].name,
         canvasStyleHeight: canvasStyleHeight
       }, () => {
         this.initCanvas()
@@ -129,7 +129,7 @@ Page({
   pickCalendarExcerpt(poem, sentenceLines, normalLines) {
     const candidates = (sentenceLines || []).concat(normalLines || [])
     for (let i = 0; i < candidates.length; i++) {
-      const line = (candidates[i] || '').trim()
+      const line = String(candidates[i] || '').trim()
       if (line) {
         return line
       }
@@ -140,24 +140,102 @@ Page({
     return '今日宜听雨'
   },
 
-  calcCanvasHeight(contentLines) {
+  getCanvasMetrics() {
     const sysInfo = wx.getSystemInfoSync()
     const screenWidth = sysInfo.windowWidth
     const canvasWidthPx = 560 / 750 * screenWidth
-    const paddingX = 50
-    const contentW = canvasWidthPx - paddingX * 2
-    const lineFontSize = 16
-    const lineHeight = lineFontSize * 2.2
+    return {
+      screenWidth: screenWidth,
+      canvasWidthPx: canvasWidthPx,
+      contentWidthPx: canvasWidthPx - 100
+    }
+  },
 
-    let actualLines = 0
-    for (let i = 0; i < contentLines.length; i++) {
-      const estimatedWidth = contentLines[i].length * lineFontSize
-      actualLines += estimatedWidth > contentW ? Math.ceil(estimatedWidth / contentW) : 1
+  wrapText(ctx, text, maxWidth, maxLines) {
+    const source = String(text || '').replace(/\s+/g, ' ').trim()
+    if (!source) {
+      return { lines: [''], truncated: false }
     }
 
-    const totalPx = 50 + 22 + 20 + 12 + 36 + actualLines * lineHeight + 80
-    const heightRpx = Math.ceil(totalPx / screenWidth * 750)
-    return Math.max(750, heightRpx)
+    const chars = source.split('')
+    const lines = []
+    let current = ''
+    let truncated = false
+
+    const pushCurrent = () => {
+      if (current) {
+        lines.push(current)
+        current = ''
+      }
+    }
+
+    for (let i = 0; i < chars.length; i++) {
+      const next = current + chars[i]
+      if (ctx.measureText(next).width > maxWidth && current) {
+        pushCurrent()
+        current = chars[i]
+
+        if (maxLines && lines.length >= maxLines) {
+          truncated = true
+          break
+        }
+      } else {
+        current = next
+      }
+    }
+
+    if (!truncated) {
+      pushCurrent()
+    }
+
+    if (maxLines && lines.length > maxLines) {
+      lines.length = maxLines
+      truncated = true
+    }
+
+    if (truncated && lines.length > 0) {
+      const lastIndex = lines.length - 1
+      let last = lines[lastIndex]
+      while (last && ctx.measureText(`${last}…`).width > maxWidth) {
+        last = last.slice(0, -1)
+      }
+      lines[lastIndex] = last ? `${last}…` : '…'
+    }
+
+    return {
+      lines: lines.length ? lines : [''],
+      truncated: truncated
+    }
+  },
+
+  calcNormalCanvasHeight(contentLines) {
+    const { screenWidth, contentWidthPx } = this.getCanvasMetrics()
+    const lineFontSize = 17
+    const lineHeight = 35
+    let actualLines = 0
+
+    for (let i = 0; i < contentLines.length; i++) {
+      const text = String(contentLines[i] || '')
+      const estimatedWidth = text.length * lineFontSize
+      actualLines += estimatedWidth > contentWidthPx ? Math.ceil(estimatedWidth / contentWidthPx) : 1
+    }
+
+    const totalPx = 56 + 28 + 20 + 18 + 40 + actualLines * lineHeight + 110
+    return Math.max(750, Math.ceil(totalPx / screenWidth * 750))
+  },
+
+  calcCalendarCanvasHeight(poem, excerpt) {
+    const { screenWidth, contentWidthPx } = this.getCanvasMetrics()
+    const titleFontSize = 28
+    const excerptFontSize = 18
+    const titleWidth = Math.max(120, contentWidthPx)
+    const simulatedTitleLines = Math.max(1, Math.ceil((String(poem.title || '').length * titleFontSize) / titleWidth))
+    const simulatedExcerptLines = Math.max(1, Math.min(4, Math.ceil((String(excerpt || '').length * excerptFontSize) / contentWidthPx)))
+
+    const titleBlock = simulatedTitleLines * 38
+    const excerptBlock = simulatedExcerptLines * 42
+    const totalPx = 90 + titleBlock + 22 + 24 + 20 + excerptBlock + 108
+    return Math.max(750, Math.ceil(totalPx / screenWidth * 750))
   },
 
   initCanvas() {
@@ -168,12 +246,13 @@ Page({
           console.error('Canvas 节点未找到')
           return
         }
+
         const canvas = res[0].node
         const ctx = canvas.getContext('2d')
-
         const dpr = wx.getSystemInfoSync().pixelRatio
         const width = res[0].width
         const height = res[0].height
+
         canvas.width = width * dpr
         canvas.height = height * dpr
         ctx.scale(dpr, dpr)
@@ -189,193 +268,45 @@ Page({
   },
 
   selectTemplate(e) {
-    const index = e.currentTarget.dataset.index
-    this.setData({ currentTemplate: index }, () => {
+    const index = Number(e.currentTarget.dataset.index)
+    if (Number.isNaN(index) || index < 0 || index >= TEMPLATES.length) {
+      return
+    }
+
+    this.setData({
+      currentTemplate: index,
+      currentTemplateName: TEMPLATES[index].name
+    }, () => {
       this.drawCard()
     })
   },
 
   drawBackground(ctx, template, w, h) {
+    const pageBg = template.bgType === 'gradient'
+      ? '#F0ECE5'
+      : (template.bgColor === '#2A2A2A' ? '#1D1F20' : '#F2EEE8')
+    ctx.fillStyle = pageBg
+    ctx.fillRect(0, 0, w, h)
+  },
+
+  drawCardFrame(ctx, template, w, h) {
+    const margin = 18
+    const frameWidth = w - margin * 2
+    const frameHeight = h - margin * 2
+
     if (template.bgType === 'gradient') {
-      const gradient = ctx.createLinearGradient(0, 0, 0, h)
+      const gradient = ctx.createLinearGradient(margin, margin, margin, margin + frameHeight)
       gradient.addColorStop(0, template.bgColorStart)
       gradient.addColorStop(1, template.bgColorEnd)
       ctx.fillStyle = gradient
     } else {
       ctx.fillStyle = template.bgColor
     }
-    ctx.fillRect(0, 0, w, h)
-  },
 
-  drawBorder(ctx, template, w, h) {
-    if (template.hasBorder && template.borderColor) {
-      ctx.strokeStyle = template.borderColor
-      ctx.lineWidth = 1
-      const margin = 20
-      ctx.strokeRect(margin, margin, w - margin * 2, h - margin * 2)
-    }
-  },
-
-  wrapLines(ctx, text, maxWidth) {
-    const chars = String(text || '').split('')
-    const lines = []
-    let currentLine = ''
-
-    for (let i = 0; i < chars.length; i++) {
-      const testLine = currentLine + chars[i]
-      if (ctx.measureText(testLine).width > maxWidth && currentLine) {
-        lines.push(currentLine)
-        currentLine = chars[i]
-      } else {
-        currentLine = testLine
-      }
-    }
-
-    if (currentLine) {
-      lines.push(currentLine)
-    }
-
-    return lines
-  },
-
-  drawWrappedText(ctx, text, x, y, maxWidth, lineHeight, align) {
-    const lines = this.wrapLines(ctx, text, maxWidth)
-    ctx.textAlign = align || 'center'
-    lines.forEach((line, index) => {
-      ctx.fillText(line, x, y + index * lineHeight)
-    })
-    return lines.length
-  },
-
-  drawCalendarCard(ctx, template, w, h, poem) {
-    const paddingX = 56
-    const maxWidth = w - paddingX * 2
-    const titleFontSize = 24
-    const badgeFontSize = 12
-    const metaFontSize = 13
-    const excerptFontSize = 17
-    const footerFontSize = 10
-
-    this.drawBackground(ctx, template, w, h)
-    this.drawBorder(ctx, template, w, h)
-
-    ctx.textAlign = 'center'
-
-    ctx.fillStyle = template.metaColor
-    ctx.font = `bold ${badgeFontSize}px sans-serif`
-    ctx.fillText('今日诗历', w / 2, 90)
-
-    ctx.fillStyle = template.titleColor
-    ctx.font = `bold ${titleFontSize}px serif`
-    this.drawWrappedText(ctx, poem.title, w / 2, 140, maxWidth, 30, 'center')
-
-    ctx.fillStyle = template.metaColor
-    ctx.font = `${metaFontSize}px sans-serif`
-    ctx.fillText(this.data.calendarDateLabel, w / 2, 192)
-
-    ctx.fillStyle = template.textColor
-    ctx.font = `${excerptFontSize}px serif`
-    const excerptLines = this.wrapLines(ctx, this.data.calendarExcerpt, maxWidth)
-    const excerptStartY = 250
-    excerptLines.slice(0, 4).forEach((line, index) => {
-      ctx.fillText(line, w / 2, excerptStartY + index * 40)
-    })
-
-    ctx.fillStyle = template.metaColor
-    ctx.font = `${metaFontSize}px sans-serif`
-    ctx.fillText(`${poem.dynasty} · ${poem.author}`, w / 2, h - 100)
-
-    ctx.fillStyle = template.watermarkColor
-    ctx.font = `${footerFontSize}px sans-serif`
-    ctx.fillText('听雨眠舟', w / 2, h - 34)
-  },
-
-  drawNormalCard(ctx, template, w, h, poem, contentLines) {
-    const paddingX = 50
-    const contentW = w - paddingX * 2
-    const titleFontSize = 22
-    const metaFontSize = 12
-    const lineFontSize = 16
-    const lineHeight = lineFontSize * 2.2
-    const watermarkFontSize = 10
-    const serifFont = 'serif'
-    const sansFont = 'sans-serif'
-
-    ctx.font = `${lineFontSize}px ${serifFont}`
-    let actualLines = 0
-    for (const line of contentLines) {
-      const measured = ctx.measureText(line).width
-      actualLines += measured > contentW ? Math.ceil(measured / contentW) : 1
-    }
-
-    const totalContentHeight = titleFontSize + 20 + metaFontSize + 36 +
-      actualLines * lineHeight + 50 + watermarkFontSize
-    let startY = Math.max(50, (h - totalContentHeight) / 2)
-
-    ctx.fillStyle = template.titleColor
-    ctx.font = `bold ${titleFontSize}px ${serifFont}`
-    ctx.textAlign = 'center'
-    ctx.fillText(poem.title, w / 2, startY)
-    startY += titleFontSize + 20
-
-    ctx.fillStyle = template.metaColor
-    ctx.font = `${metaFontSize}px ${sansFont}`
-    ctx.fillText(`${poem.dynasty} · ${poem.author}`, w / 2, startY)
-    startY += metaFontSize + 36
-
-    ctx.fillStyle = template.textColor
-    ctx.font = `${lineFontSize}px ${serifFont}`
-
-    for (let i = 0; i < contentLines.length; i++) {
-      const line = contentLines[i]
-      const measured = ctx.measureText(line).width
-      if (measured > contentW) {
-        const chars = line.split('')
-        let currentLine = ''
-        for (const char of chars) {
-          const testLine = currentLine + char
-          if (ctx.measureText(testLine).width > contentW) {
-            ctx.fillText(currentLine, w / 2, startY)
-            startY += lineHeight
-            currentLine = char
-          } else {
-            currentLine = testLine
-          }
-        }
-        if (currentLine) {
-          ctx.fillText(currentLine, w / 2, startY)
-          startY += lineHeight
-        }
-      } else {
-        ctx.fillText(line, w / 2, startY)
-        startY += lineHeight
-      }
-    }
-
-    const watermarkY = Math.max(startY + 40, h - 30)
-    ctx.fillStyle = template.watermarkColor
-    ctx.font = `${watermarkFontSize}px ${sansFont}`
-    ctx.fillText('听雨眠舟', w / 2, watermarkY)
-  },
-
-  calcCanvasHeight(contentLines) {
-    const sysInfo = wx.getSystemInfoSync()
-    const screenWidth = sysInfo.windowWidth
-    const canvasWidthPx = 560 / 750 * screenWidth
-    const paddingX = 50
-    const contentW = canvasWidthPx - paddingX * 2
-    const lineFontSize = 16
-    const lineHeight = lineFontSize * 2.1
-
-    let actualLines = 0
-    for (let i = 0; i < contentLines.length; i++) {
-      const estimatedWidth = contentLines[i].length * lineFontSize
-      actualLines += estimatedWidth > contentW ? Math.ceil(estimatedWidth / contentW) : 1
-    }
-
-    const totalPx = 56 + 28 + 24 + 12 + 40 + actualLines * lineHeight + 96
-    const heightRpx = Math.ceil(totalPx / screenWidth * 750)
-    return Math.max(750, heightRpx)
+    ctx.fillRect(margin, margin, frameWidth, frameHeight)
+    ctx.strokeStyle = template.borderColor || 'rgba(58, 74, 63, 0.08)'
+    ctx.lineWidth = 1
+    ctx.strokeRect(margin, margin, frameWidth, frameHeight)
   },
 
   drawCalendarCard(ctx, template, w, h, poem) {
@@ -386,9 +317,10 @@ Page({
     const metaFontSize = 14
     const excerptFontSize = 18
     const footerFontSize = 11
+    const excerptLineHeight = 44
 
     this.drawBackground(ctx, template, w, h)
-    this.drawBorder(ctx, template, w, h)
+    this.drawCardFrame(ctx, template, w, h)
 
     ctx.textAlign = 'center'
 
@@ -398,26 +330,32 @@ Page({
 
     ctx.fillStyle = template.titleColor
     ctx.font = `bold ${titleFontSize}px serif`
-    this.drawWrappedText(ctx, poem.title, w / 2, 146, maxWidth, 36, 'center')
+    const titleLines = this.wrapText(ctx, poem.title, maxWidth, 2)
+    const titleStartY = 148 - ((titleLines.lines.length - 1) * 18)
+    titleLines.lines.forEach((line, index) => {
+      ctx.fillText(line, w / 2, titleStartY + index * 38)
+    })
+
+    const titleBottomY = titleStartY + (titleLines.lines.length - 1) * 38
 
     ctx.fillStyle = template.metaColor
     ctx.font = `${metaFontSize}px sans-serif`
-    ctx.fillText(this.data.calendarDateLabel, w / 2, 204)
+    ctx.fillText(this.data.calendarDateLabel, w / 2, titleBottomY + 52)
 
     ctx.strokeStyle = template.borderColor || template.metaColor
     ctx.globalAlpha = 0.18
     ctx.beginPath()
-    ctx.moveTo(w / 2 - 68, 230)
-    ctx.lineTo(w / 2 + 68, 230)
+    ctx.moveTo(w / 2 - 68, titleBottomY + 82)
+    ctx.lineTo(w / 2 + 68, titleBottomY + 82)
     ctx.stroke()
     ctx.globalAlpha = 1
 
     ctx.fillStyle = template.textColor
     ctx.font = `${excerptFontSize}px serif`
-    const excerptLines = this.wrapLines(ctx, this.data.calendarExcerpt, maxWidth)
-    const excerptStartY = 278
-    excerptLines.slice(0, 4).forEach((line, index) => {
-      ctx.fillText(line, w / 2, excerptStartY + index * 42)
+    const excerptLines = this.wrapText(ctx, this.data.calendarExcerpt, maxWidth, 4).lines
+    const excerptStartY = titleBottomY + 124
+    excerptLines.forEach((line, index) => {
+      ctx.fillText(line, w / 2, excerptStartY + index * excerptLineHeight)
     })
 
     ctx.fillStyle = template.metaColor
@@ -435,30 +373,30 @@ Page({
     const titleFontSize = 24
     const metaFontSize = 13
     const lineFontSize = 17
-    const lineHeight = lineFontSize * 2.05
+    const lineHeight = 35
     const watermarkFontSize = 10
-    const serifFont = 'serif'
-    const sansFont = 'sans-serif'
 
-    ctx.font = `${lineFontSize}px ${serifFont}`
+    ctx.font = `${lineFontSize}px serif`
     let actualLines = 0
-    for (const line of contentLines) {
-      const measured = ctx.measureText(line).width
+    for (let i = 0; i < contentLines.length; i++) {
+      const measured = ctx.measureText(String(contentLines[i] || '')).width
       actualLines += measured > contentW ? Math.ceil(measured / contentW) : 1
     }
 
-    const totalContentHeight = titleFontSize + 18 + metaFontSize + 34 +
-      actualLines * lineHeight + 58 + watermarkFontSize
+    const totalContentHeight = titleFontSize + 18 + metaFontSize + 34 + actualLines * lineHeight + 58 + watermarkFontSize
     let startY = Math.max(66, (h - totalContentHeight) / 2)
 
-    ctx.fillStyle = template.titleColor
-    ctx.font = `bold ${titleFontSize}px ${serifFont}`
+    this.drawBackground(ctx, template, w, h)
+    this.drawCardFrame(ctx, template, w, h)
+
     ctx.textAlign = 'center'
+    ctx.fillStyle = template.titleColor
+    ctx.font = `bold ${titleFontSize}px serif`
     ctx.fillText(poem.title, w / 2, startY)
     startY += titleFontSize + 18
 
     ctx.fillStyle = template.metaColor
-    ctx.font = `${metaFontSize}px ${sansFont}`
+    ctx.font = `${metaFontSize}px sans-serif`
     ctx.fillText(`${poem.dynasty} · ${poem.author}`, w / 2, startY)
     startY += metaFontSize + 28
 
@@ -472,37 +410,20 @@ Page({
     startY += 34
 
     ctx.fillStyle = template.textColor
-    ctx.font = `${lineFontSize}px ${serifFont}`
+    ctx.font = `${lineFontSize}px serif`
 
     for (let i = 0; i < contentLines.length; i++) {
-      const line = contentLines[i]
-      const measured = ctx.measureText(line).width
-      if (measured > contentW) {
-        const chars = line.split('')
-        let currentLine = ''
-        for (const char of chars) {
-          const testLine = currentLine + char
-          if (ctx.measureText(testLine).width > contentW) {
-            ctx.fillText(currentLine, w / 2, startY)
-            startY += lineHeight
-            currentLine = char
-          } else {
-            currentLine = testLine
-          }
-        }
-        if (currentLine) {
-          ctx.fillText(currentLine, w / 2, startY)
-          startY += lineHeight
-        }
-      } else {
-        ctx.fillText(line, w / 2, startY)
+      const text = String(contentLines[i] || '')
+      const wrapped = this.wrapText(ctx, text, contentW)
+      for (let j = 0; j < wrapped.lines.length; j++) {
+        ctx.fillText(wrapped.lines[j], w / 2, startY)
         startY += lineHeight
       }
     }
 
     const watermarkY = Math.max(startY + 40, h - 30)
     ctx.fillStyle = template.watermarkColor
-    ctx.font = `${watermarkFontSize}px ${sansFont}`
+    ctx.font = `${watermarkFontSize}px sans-serif`
     ctx.fillText('听雨眠舟', w / 2, watermarkY)
   },
 
@@ -512,7 +433,7 @@ Page({
     const ctx = this.ctx
     const w = this.canvasWidth
     const h = this.canvasHeight
-    const template = TEMPLATES[this.data.currentTemplate]
+    const template = TEMPLATES[this.data.currentTemplate] || TEMPLATES[0]
     const { poem, contentLines, calendarMode } = this.data
 
     ctx.clearRect(0, 0, w, h)

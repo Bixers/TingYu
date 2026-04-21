@@ -61,11 +61,36 @@ Page({
 
   syncProfile() {
     const globalData = app.globalData
+    const cachedUser = wx.getStorageSync('userInfo') || null
+    const authToken = wx.getStorageSync('authToken') || ''
+    const authTokenExpireAt = Number(wx.getStorageSync('authTokenExpireAt') || 0)
+    const tokenValid = !!authToken && authTokenExpireAt > Date.now()
+    const initialUser = tokenValid ? (globalData.userInfo || cachedUser) : null
+    const initialLoggedIn = !!tokenValid
     this.setData({
-      isLoggedIn: !!globalData.isLoggedIn,
-      userInfo: globalData.userInfo,
-      rainPushEnabled: !!(globalData.userInfo && globalData.userInfo.rainPushEnabled)
+      isLoggedIn: initialLoggedIn,
+      userInfo: initialUser,
+      rainPushEnabled: !!(initialUser && initialUser.rainPushEnabled)
     })
+
+    if (!initialLoggedIn) {
+      if (!tokenValid) {
+        wx.removeStorageSync('authToken')
+        wx.removeStorageSync('authTokenExpireAt')
+        wx.removeStorageSync('userInfo')
+        app.globalData.userInfo = null
+        app.globalData.isLoggedIn = false
+        app.globalData.authToken = ''
+        app.globalData.authTokenExpireAt = 0
+        this.setData({
+          isLoggedIn: false,
+          userInfo: null,
+          showManualLogin: false,
+          rainPushEnabled: false
+        })
+      }
+      return
+    }
 
     api.getUserProfile().then((user) => {
       if (!user) {
@@ -82,6 +107,8 @@ Page({
 
       app.globalData.userInfo = user
       app.globalData.isLoggedIn = true
+      app.globalData.authToken = authToken
+      app.globalData.authTokenExpireAt = authTokenExpireAt
       wx.setStorageSync('userInfo', user)
       this.setData({
         isLoggedIn: true,
@@ -90,9 +117,9 @@ Page({
       })
     }).catch(() => {
       this.setData({
-        isLoggedIn: !!globalData.isLoggedIn,
-        userInfo: globalData.userInfo,
-        rainPushEnabled: !!(globalData.userInfo && globalData.userInfo.rainPushEnabled)
+        isLoggedIn: !!initialLoggedIn,
+        userInfo: initialUser,
+        rainPushEnabled: !!(initialUser && initialUser.rainPushEnabled)
       })
     })
   },
@@ -123,6 +150,13 @@ Page({
       }
       return templateId
     }).catch(() => '')
+  },
+
+  isProfileIncomplete(user) {
+    const profile = user || {}
+    const nickname = (profile.nickname || '').trim()
+    const avatarUrl = (profile.avatarUrl || '').trim()
+    return !nickname || nickname === '听雨客' || !avatarUrl
   },
 
   subscribeDailyRain() {
@@ -185,19 +219,42 @@ Page({
         api.registerUser({
           nickname: nickname,
           avatarUrl: avatarUrl
-        }).then((user) => {
+        }).then((session) => {
+          const payload = session && session.user ? session : { user: session }
+          const user = payload.user || {}
+          const token = payload.token || ''
+          const expireAt = Number(payload.expireAt || 0)
+          if (token) {
+            wx.setStorageSync('authToken', token)
+            wx.setStorageSync('authTokenExpireAt', expireAt)
+            app.globalData.authToken = token
+            app.globalData.authTokenExpireAt = expireAt
+          }
           app.globalData.userInfo = user
           app.globalData.isLoggedIn = true
           wx.setStorageSync('userInfo', user)
           this.setData({
             isLoggedIn: true,
             userInfo: user,
-            showManualLogin: false,
+            showManualLogin: this.isProfileIncomplete(user),
             tempAvatarUrl: '',
             tempNickname: '',
             rainPushEnabled: !!user.rainPushEnabled
           })
           wx.showToast({ title: '授权登录成功', icon: 'success' })
+          if (this.isProfileIncomplete(user)) {
+            wx.showModal({
+              title: '完善资料',
+              content: '已完成登录，但头像或昵称还未完善，可以现在补填。',
+              confirmText: '去完善',
+              cancelText: '稍后再说',
+              success: (modalRes) => {
+                if (modalRes.confirm) {
+                  this.showManualLoginForm()
+                }
+              }
+            })
+          }
         }).catch((err) => {
           console.error('授权登录失败', err)
           wx.showToast({ title: (err && err.message) || '登录失败', icon: 'none' })
@@ -213,6 +270,10 @@ Page({
   },
 
   showManualLoginForm() {
+    if (!this.data.isLoggedIn) {
+      wx.showToast({ title: '请先完成授权登录', icon: 'none' })
+      return
+    }
     const userInfo = this.data.userInfo || {}
     this.setData({
       showManualLogin: true,
@@ -228,10 +289,6 @@ Page({
       tempAvatarUrl: '',
       tempNickname: ''
     })
-  },
-
-  editProfile() {
-    this.requestUserProfile()
   },
 
   onChooseAvatar(e) {
@@ -301,7 +358,17 @@ Page({
         nickname: nickname,
         avatarUrl: uploadedAvatarUrl
       })
-    }).then((user) => {
+    }).then((session) => {
+      const payload = session && session.user ? session : { user: session }
+      const user = payload.user || {}
+      const token = payload.token || ''
+      const expireAt = Number(payload.expireAt || 0)
+      if (token) {
+        wx.setStorageSync('authToken', token)
+        wx.setStorageSync('authTokenExpireAt', expireAt)
+        app.globalData.authToken = token
+        app.globalData.authTokenExpireAt = expireAt
+      }
       app.globalData.userInfo = user
       app.globalData.isLoggedIn = true
       wx.setStorageSync('userInfo', user)

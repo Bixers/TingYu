@@ -20,7 +20,8 @@
         <text class="preview-title">{{calendarMode ? '今日诗历' : poem.title}}</text>
         <text class="preview-desc">{{calendarMode ? calendarDateLabel : poem.dynasty + ' · ' + poem.author}}</text>
       </view>
-      <text class="preview-excerpt">{{calendarMode ? calendarExcerpt : contentLines[0]}}</text>
+      <text class="preview-template" wx:if="{{!calendarMode}}">当前模板 · {{currentTemplateName}}</text>
+      <text class="preview-excerpt {{calendarMode ? 'preview-excerpt-calendar' : ''}}">{{calendarMode ? calendarExcerpt : contentLines[0]}}</text>
     </view>
   </view>
 

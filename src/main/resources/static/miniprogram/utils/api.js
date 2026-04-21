@@ -2,6 +2,7 @@ const app = getApp()
 
 function request(path, method = 'GET', data = null) {
   return new Promise((resolve, reject) => {
+    const authToken = wx.getStorageSync('authToken')
     const options = {
       path,
       method,
@@ -23,6 +24,10 @@ function request(path, method = 'GET', data = null) {
     if (data && method === 'POST') {
       options.data = data
       options.header['content-type'] = 'application/json'
+    }
+    if (authToken) {
+      options.header.Token = authToken
+      options.header.Authorization = `Bearer ${authToken}`
     }
     wx.cloud.callContainer(options)
   })
@@ -90,6 +95,10 @@ function getPinyin(text) {
 
 function getUserProfile() {
   return request('/api/user/profile')
+}
+
+function loginUser() {
+  return request('/api/user/login', 'POST', {})
 }
 
 function registerUser(data) {
@@ -292,6 +301,7 @@ module.exports = {
   getAuthorByName,
   getPinyin,
   getUserProfile,
+  loginUser,
   registerUser,
   updateRainPushPreference,
   getFavorites,

@@ -12,18 +12,17 @@
   <view class="login-card card fade-in" wx:if="{{!isLoggedIn && !showManualLogin}}">
     <view class="login-guide">
       <text class="login-title">微信授权登录</text>
-      <text class="login-desc text-muted">点击后拉起微信授权，自动获取昵称和头像，用于完善诗舟身份信息。</text>
+      <text class="login-desc text-muted">点击后会拉起微信授权窗口，先完成登录建账；如果资料不完整，登录后再补填。</text>
       <button class="btn-primary login-btn" bindtap="requestUserProfile" loading="{{submitting}}" disabled="{{submitting}}">
         {{submitting ? '授权中...' : '微信授权登录'}}
       </button>
-      <button class="btn-secondary secondary-btn" bindtap="showManualLoginForm">手动填写</button>
     </view>
   </view>
 
-  <view class="login-card card fade-in" wx:if="{{showManualLogin}}">
+  <view class="login-card card fade-in" wx:if="{{isLoggedIn && showManualLogin}}">
     <view class="login-guide form-guide">
       <text class="login-title">{{isLoggedIn ? '更新微信资料' : '手动完善资料'}}</text>
-      <text class="login-desc text-muted">如果授权失败，可以手动选择头像并填写昵称。</text>
+      <text class="login-desc text-muted">如果微信资料获取不到，也可以在登录后手动补上头像和昵称。</text>
 
       <button class="avatar-picker" open-type="chooseAvatar" bindchooseavatar="onChooseAvatar">
         <image class="avatar-preview" src="{{tempAvatarUrl || userInfo.avatarUrl || '/images/profile_normal.png'}}" mode="aspectFill"></image>
@@ -49,10 +48,6 @@
   </view>
 
   <view class="menu-section card fade-in" wx:if="{{isLoggedIn}}">
-    <view class="menu-item" bindtap="editProfile">
-      <text class="menu-text">重新拉取头像昵称</text>
-      <text class="menu-arrow">></text>
-    </view>
     <view class="menu-item" bindtap="goToBoat">
       <text class="menu-text">诗舟</text>
       <text class="menu-arrow">></text>

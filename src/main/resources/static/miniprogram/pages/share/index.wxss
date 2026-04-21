@@ -181,10 +181,25 @@
   color: #A07C4A;
 }
 
+.preview-template {
+  display: block;
+  margin-top: 10rpx;
+  font-size: 20rpx;
+  color: #7A8A7F;
+  letter-spacing: 1rpx;
+}
+
 .preview-excerpt {
   display: block;
   margin-top: 14rpx;
   font-size: 24rpx;
   line-height: 1.7;
   color: #5A6A5F;
+  word-break: break-all;
+  white-space: normal;
+}
+
+.preview-excerpt-calendar {
+  line-height: 1.9;
+  font-size: 22rpx;
 }

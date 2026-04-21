@@ -12,16 +12,29 @@ App({
     const useTraditional = wx.getStorageSync('useTraditional')
     this.globalData.useTraditional = useTraditional === true
 
+    const token = wx.getStorageSync('authToken')
+    const expireAt = Number(wx.getStorageSync('authTokenExpireAt') || 0)
+    const now = Date.now()
     const userInfo = wx.getStorageSync('userInfo')
-    if (userInfo && userInfo.nickname) {
-      this.globalData.userInfo = userInfo
+    if (token && expireAt > now) {
+      this.globalData.authToken = token
+      this.globalData.authTokenExpireAt = expireAt
+      this.globalData.userInfo = userInfo || null
       this.globalData.isLoggedIn = true
+    } else {
+      wx.removeStorageSync('authToken')
+      wx.removeStorageSync('authTokenExpireAt')
+      if (!userInfo || !userInfo.nickname) {
+        wx.removeStorageSync('userInfo')
+      }
     }
   },
 
   globalData: {
     userInfo: null,
     isLoggedIn: false,
+    authToken: '',
+    authTokenExpireAt: 0,
     serviceName: 'springboot-84kb',
     dailyRainTemplateId: '',
     pendingTag: '',
