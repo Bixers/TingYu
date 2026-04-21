@@ -24,9 +24,11 @@ App({
     } else {
       wx.removeStorageSync('authToken')
       wx.removeStorageSync('authTokenExpireAt')
-      if (!userInfo || !userInfo.nickname) {
-        wx.removeStorageSync('userInfo')
-      }
+      wx.removeStorageSync('userInfo')
+      this.globalData.userInfo = null
+      this.globalData.isLoggedIn = false
+      this.globalData.authToken = ''
+      this.globalData.authTokenExpireAt = 0
     }
   },
 

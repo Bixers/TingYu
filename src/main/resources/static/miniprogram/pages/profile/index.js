@@ -404,7 +404,11 @@ Page({
 
         app.globalData.userInfo = null
         app.globalData.isLoggedIn = false
+        app.globalData.authToken = ''
+        app.globalData.authTokenExpireAt = 0
         wx.removeStorageSync('userInfo')
+        wx.removeStorageSync('authToken')
+        wx.removeStorageSync('authTokenExpireAt')
         this.setData({
           isLoggedIn: false,
           userInfo: null,
