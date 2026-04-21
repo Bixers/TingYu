@@ -34,7 +34,7 @@
         FROM boat_messages
         WHERE is_deleted = 0
           AND parent_message_id IS NULL
-          AND user_id <> #{userId}
+          AND user_id &lt;&gt; #{userId}
         ORDER BY created_at DESC
         LIMIT #{limit}
     </select>
@@ -83,7 +83,7 @@
         FROM boat_messages m
         WHERE m.is_deleted = 0
           AND m.parent_message_id IS NULL
-          AND m.user_id <> #{userId}
+          AND m.user_id &lt;&gt; #{userId}
           AND NOT EXISTS (
               SELECT 1
               FROM boat_matches bm
