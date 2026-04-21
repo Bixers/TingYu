@@ -67,8 +67,8 @@
   </view>
 
   <view class="bottom-bar" wx:if="{{poem && !immersiveMode}}">
-    <view class="bottom-btn voice-btn {{reading ? 'active' : ''}}" bindtap="toggleReading">
-      <text class="btn-label">{{reading ? '停止朗读' : (readingLoading ? '生成中...' : '语音朗读')}}</text>
+    <view class="bottom-btn voice-btn {{reading ? 'active' : ''}} {{!ttsAvailable ? 'disabled' : ''}}" bindtap="toggleReading">
+      <text class="btn-label">{{reading ? '停止朗读' : (readingLoading ? '生成中...' : (ttsAvailable ? '语音朗读' : '朗读暂不可用'))}}</text>
     </view>
     <view class="bottom-btn favorite-btn {{isFavoriteFull ? 'active' : ''}}" bindtap="toggleFullFavorite">
       <text class="btn-label">{{isFavoriteFull ? '已收藏全文' : '收藏全文'}}</text>
@@ -82,10 +82,14 @@
   </view>
 
   <view class="rain-panel" wx:if="{{poem && immersiveMode}}">
-    <view class="rain-main {{rainPlaying ? 'active' : ''}}" bindtap="toggleRain">
-      <text class="rain-title">檐下雨</text>
-      <text class="rain-subtitle">{{rainPlaying ? '雨声渐起' : (rainLoading ? '准备中...' : '点击落雨')}}</text>
+    <view class="rain-switch-card {{rainEnabled ? 'active' : ''}}">
+      <view class="rain-switch-meta">
+        <text class="rain-title">檐下雨</text>
+        <text class="rain-subtitle">{{rainPlaying ? '雨声渐起' : (rainLoading ? '准备中...' : '开关雨声')}}</text>
+      </view>
+      <switch class="rain-switch" color="#5A6A5F" checked="{{rainEnabled}}" bindchange="onRainSwitchChange" />
     </view>
+    <text class="rain-switch-tip">开即落雨，关即收声</text>
     <scroll-view scroll-x class="rain-source-scroll">
       <view class="rain-source-list">
         <view class="rain-source-chip {{rainSourceIndex === index ? 'active' : ''}}"

@@ -109,6 +109,16 @@
    - `MYSQL_ADDRESS` - 数据库地址 (host:port)
    - `MYSQL_USERNAME` - 数据库用户名
    - `MYSQL_PASSWORD` - 数据库密码
+   - `WECHAT_APPID` - 小程序 AppID
+   - `WECHAT_SECRET` - 小程序密钥
+   - `WECHAT_SUBSCRIBE_TEMPLATE_ID` - 每日雨丝订阅模板 ID
+   - `WECHAT_SUBSCRIBE_PAGE` - 订阅消息跳转页，默认 `pages/detail/index`
+   - `TENCENT_TTS_APP_ID` - 腾讯云语音合成 AppID
+   - `TENCENT_TTS_SECRET_ID` - 腾讯云语音合成 SecretId
+   - `TENCENT_TTS_SECRET_KEY` - 腾讯云语音合成 SecretKey
+   - `TENCENT_TTS_VOICE` - 朗读音色，默认 `101001`
+   - `TENCENT_TTS_SPEED` - 朗读语速，默认 `0`
+   - `TENCENT_TTS_VOLUME` - 朗读音量，默认 `30`
 
 ### 本地开发
 
@@ -129,6 +139,11 @@ mvn spring-boot:run
 [MIT](./LICENSE)
 
 ## 更新记录
+
+### v0.1.3 (2026-04-21)
+- 语音朗读切换为腾讯云语音合成，支持国内环境直连与长文本任务
+- 补充腾讯云 TTS 运行配置说明，便于在云托管或本地环境中启用朗读
+- 雨声白噪音支持项目内兜底音频与云端地址双模式，避免未配置时不可用
 
 ### v0.1.2 (2026-04-21)
 - 登录后统一生成固定昵称 `听雨客 + 四位随机数`，确保用户展示名称风格一致

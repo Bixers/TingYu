@@ -524,19 +524,26 @@
   gap: 16rpx;
 }
 
-.rain-main {
-  min-width: 220rpx;
-  padding: 18rpx 34rpx;
-  border-radius: 999rpx;
+.rain-switch-card {
+  width: 100%;
+  padding: 18rpx 30rpx;
+  border-radius: 28rpx;
   background: rgba(58, 74, 63, 0.9);
   display: flex;
-  flex-direction: column;
   align-items: center;
+  justify-content: space-between;
   box-shadow: 0 10rpx 30rpx rgba(58, 74, 63, 0.18);
 }
 
-.rain-main.active {
+.rain-switch-card.active {
   background: rgba(90, 106, 95, 0.96);
+}
+
+.rain-switch-meta {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 6rpx;
 }
 
 .rain-title {
@@ -548,7 +555,17 @@
 .rain-subtitle {
   font-size: 22rpx;
   color: rgba(253, 248, 240, 0.78);
-  margin-top: 6rpx;
+}
+
+.rain-switch {
+  transform: scale(0.9);
+  transform-origin: center right;
+}
+
+.rain-switch-tip {
+  font-size: 20rpx;
+  color: rgba(90, 106, 95, 0.72);
+  letter-spacing: 2rpx;
 }
 
 .rain-source-scroll {

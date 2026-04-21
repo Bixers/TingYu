@@ -36,8 +36,10 @@ Page({
     excerptSaving: false,
     reading: false,
     readingLoading: false,
+    ttsAvailable: false,
     rainSources: RAIN_SOURCES,
     rainSourceIndex: 0,
+    rainEnabled: false,
     rainPlaying: false,
     rainLoading: false,
     useTraditional: false
@@ -45,6 +47,7 @@ Page({
 
   onLoad(options) {
     this.setData({ useTraditional: getApp().globalData.useTraditional })
+    this.loadRainAudioSources()
     if (options.id) {
       this.loadPoemDetail(options.id)
     }
@@ -182,6 +185,32 @@ Page({
       wx.showToast({ title: '加载详情失败', icon: 'none' })
     }).finally(() => {
       this.setData({ loading: false })
+    })
+  },
+
+  loadRainAudioSources() {
+    api.getAppConfig().then((config) => {
+      const rainSources = RAIN_SOURCES.map((item) => ({
+        name: item.name,
+        src: (config && (
+          (item.name === '疏雨滴梧' && config.rainSparseUrl) ||
+          (item.name === '骤雨打荷' && config.rainHeavyUrl) ||
+          (item.name === '夜雨舟中' && config.rainNightUrl)
+        )) ? String(
+          item.name === '疏雨滴梧' ? config.rainSparseUrl :
+          item.name === '骤雨打荷' ? config.rainHeavyUrl :
+          config.rainNightUrl
+        ).trim() : item.src
+      }))
+      this.setData({
+        rainSources: rainSources,
+        ttsAvailable: !!(config && config.ttsAvailable)
+      })
+    }).catch(() => {
+      this.setData({
+        rainSources: RAIN_SOURCES,
+        ttsAvailable: false
+      })
     })
   },
 
@@ -415,6 +444,10 @@ Page({
       return
     }
     if (this.data.readingLoading) return
+    if (!this.data.ttsAvailable) {
+      wx.showToast({ title: '朗读暂不可用', icon: 'none' })
+      return
+    }
 
     const text = this.buildReadingText()
     if (!text) {
@@ -548,6 +581,7 @@ Page({
 
     const source = this.getCurrentRainSource()
     if (!source || !source.src) {
+      this.setData({ rainEnabled: false })
       wx.showToast({ title: '暂无雨声音源', icon: 'none' })
       return
     }
@@ -562,6 +596,7 @@ Page({
     audio.loop = true
     audio.volume = 0
     audio.src = source.src
+    this.setData({ rainEnabled: true })
 
     audio.onPlay(() => {
       this.setData({ rainPlaying: true, rainLoading: false })
@@ -577,7 +612,7 @@ Page({
     audio.onError((err) => {
       console.error('雨声播放失败', err)
       this.clearRainFadeTimer()
-      this.setData({ rainPlaying: false, rainLoading: false })
+      this.setData({ rainPlaying: false, rainLoading: false, rainEnabled: false })
       wx.showToast({ title: '雨声播放失败', icon: 'none' })
     })
 
@@ -601,18 +636,27 @@ Page({
       })
     }
 
-    this.setData({ rainPlaying: false, rainLoading: false })
+    this.setData({ rainPlaying: false, rainLoading: false, rainEnabled: false })
     if (showToast) {
       wx.showToast({ title: '雨声已收起', icon: 'none' })
     }
   },
 
-  toggleRain() {
-    if (this.data.rainPlaying) {
+  onRainSwitchChange(e) {
+    const checked = !!(e && e.detail && e.detail.value)
+    if (!checked) {
       this.stopRain(true)
       return
     }
     this.startRain()
+  },
+
+  toggleRain() {
+    this.onRainSwitchChange({
+      detail: {
+        value: !this.data.rainEnabled
+      }
+    })
   },
 
   selectRainSource(e) {

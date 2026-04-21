@@ -5,7 +5,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
-import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 
@@ -18,6 +17,24 @@ public class MetaService {
     @Value("${wechat.subscribe.template-id:}")
     private String dailyRainTemplateId;
 
+    @Value("${tencent.tts.app-id:}")
+    private String tencentTtsAppId;
+
+    @Value("${tencent.tts.secret-id:}")
+    private String tencentTtsSecretId;
+
+    @Value("${tencent.tts.secret-key:}")
+    private String tencentTtsSecretKey;
+
+    @Value("${rain.audio.sparse-url:}")
+    private String rainSparseUrl;
+
+    @Value("${rain.audio.heavy-url:}")
+    private String rainHeavyUrl;
+
+    @Value("${rain.audio.night-url:}")
+    private String rainNightUrl;
+
     public List<Map<String, Object>> getDynastyList() {
         return poemMapper.findDynastyStats();
     }
@@ -27,8 +44,20 @@ public class MetaService {
     }
 
     public Map<String, Object> getAppConfig() {
-        return Collections.<String, Object>singletonMap(
-                "dailyRainTemplateId",
-                dailyRainTemplateId == null ? "" : dailyRainTemplateId.trim());
+        java.util.Map<String, Object> config = new java.util.HashMap<>();
+        config.put("dailyRainTemplateId", dailyRainTemplateId == null ? "" : dailyRainTemplateId.trim());
+        config.put("ttsAvailable", isTtsAvailable());
+        config.put("rainSparseUrl", rainSparseUrl == null ? "" : rainSparseUrl.trim());
+        config.put("rainHeavyUrl", rainHeavyUrl == null ? "" : rainHeavyUrl.trim());
+        config.put("rainNightUrl", rainNightUrl == null ? "" : rainNightUrl.trim());
+        return config;
+    }
+
+    private boolean isTtsAvailable() {
+        return notBlank(tencentTtsAppId) && notBlank(tencentTtsSecretId) && notBlank(tencentTtsSecretKey);
+    }
+
+    private boolean notBlank(String value) {
+        return value != null && !value.trim().isEmpty();
     }
 }
