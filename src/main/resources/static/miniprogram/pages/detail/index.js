@@ -1,4 +1,3 @@
-// pages/detail/index.js
 const api = require('../../utils/api')
 const cc = require('../../utils/chinese-convert')
 
@@ -16,7 +15,14 @@ Page({
     showPinyinModal: false,
     pinyinData: null,
     pinyinLoading: false,
+    pinyinError: false,
     longPressText: '',
+    longPressIndex: -1,
+    longPressType: '',
+    isFavoriteFull: false,
+    favoriteLoading: false,
+    sentenceFavoriteLoading: false,
+    sentenceFavoriteCollected: false,
     useTraditional: false
   },
 
@@ -28,29 +34,27 @@ Page({
   },
 
   onShow() {
-    var useTraditional = getApp().globalData.useTraditional
+    const useTraditional = getApp().globalData.useTraditional
     if (useTraditional !== this.data.useTraditional) {
       this.setData({ useTraditional: useTraditional })
       this.applyConversion()
     }
   },
 
-  // 切换繁简
   toggleChinese() {
-    var useTraditional = !this.data.useTraditional
+    const useTraditional = !this.data.useTraditional
     this.setData({ useTraditional: useTraditional })
     getApp().globalData.useTraditional = useTraditional
     wx.setStorageSync('useTraditional', useTraditional)
     this.applyConversion()
   },
 
-  // 应用繁简转换
   applyConversion() {
     if (!this._rawPoem) return
-    var poem = this._rawPoem
-    var useT = this.data.useTraditional
+    const poem = this._rawPoem
+    const useT = this.data.useTraditional
 
-    var displayPoem = Object.assign({}, poem, {
+    const displayPoem = Object.assign({}, poem, {
       title: cc.convert(poem.title, useT),
       author: cc.convert(poem.author, useT),
       dynasty: cc.convert(poem.dynasty, useT),
@@ -59,16 +63,21 @@ Page({
       annotation: poem.annotation
     })
 
-    var rawLines = api.parseContent(poem.content)
-    var contentLines = rawLines.map(function(line) { return cc.convert(line, useT) })
-    var tagsList = api.parseTags(poem.tags).map(function(tag) { return cc.convert(tag, useT) })
+    const rawLines = api.parseContent(poem.content)
+    const contentLines = rawLines.map(function(line) { return cc.convert(line, useT) })
+    const tagsList = api.parseTags(poem.tags).map(function(tag) { return cc.convert(tag, useT) })
 
-    var annotationList = this._rawAnnotationList || []
-    var displayAnnotation = annotationList.map(function(item) {
+    const annotationList = this._rawAnnotationList || []
+    const displayAnnotation = annotationList.map(function(item) {
       return { word: cc.convert(item.word, useT), meaning: cc.convert(item.meaning, useT) }
     })
 
-    this.setData({ poem: displayPoem, contentLines: contentLines, tagsList: tagsList, annotationList: displayAnnotation })
+    this.setData({
+      poem: displayPoem,
+      contentLines: contentLines,
+      tagsList: tagsList,
+      annotationList: displayAnnotation
+    })
 
     if (this._rawAuthorInfo) {
       this.setData({
@@ -80,23 +89,21 @@ Page({
     }
   },
 
-  // 加载诗词详情
   loadPoemDetail(id) {
     this.setData({ loading: true })
 
-    api.getPoemDetail(id).then(poem => {
+    api.getPoemDetail(id).then((poem) => {
       this._rawPoem = poem
-      var useT = this.data.useTraditional
+      const useT = this.data.useTraditional
 
-      var contentLines = api.parseContent(poem.content).map(function(l) { return cc.convert(l, useT) })
-      var tagsList = api.parseTags(poem.tags).map(function(t) { return cc.convert(t, useT) })
+      const contentLines = api.parseContent(poem.content).map(function(line) { return cc.convert(line, useT) })
+      const tagsList = api.parseTags(poem.tags).map(function(tag) { return cc.convert(tag, useT) })
 
-      // 确定默认显示的Tab
       let activeTab = 'annotation'
       if (!poem.annotation && poem.appreciation) activeTab = 'appreciation'
       else if (!poem.annotation && !poem.appreciation && poem.translation) activeTab = 'translation'
 
-      var displayPoem = Object.assign({}, poem, {
+      const displayPoem = Object.assign({}, poem, {
         title: cc.convert(poem.title, useT),
         author: cc.convert(poem.author, useT),
         dynasty: cc.convert(poem.dynasty, useT),
@@ -105,17 +112,22 @@ Page({
         annotation: poem.annotation
       })
 
-      this.setData({ poem: displayPoem, contentLines: contentLines, tagsList: tagsList, activeTab: activeTab })
-      wx.setNavigationBarTitle({ title: displayPoem.title || '诗词详情' })
+      this.setData({
+        poem: displayPoem,
+        contentLines: contentLines,
+        tagsList: tagsList,
+        activeTab: activeTab
+      })
+      wx.setNavigationBarTitle({ title: displayPoem.title || '璇楄瘝璇︽儏' })
+      this.loadFavoriteStatus(poem.id)
 
-      // 解析注释 JSON（[{word, meaning}] 格式）
       this._rawAnnotationList = []
       if (poem.annotation) {
         try {
-          var list = JSON.parse(poem.annotation)
+          const list = JSON.parse(poem.annotation)
           if (Array.isArray(list)) {
             this._rawAnnotationList = list
-            var displayList = list.map(function(item) {
+            const displayList = list.map(function(item) {
               return { word: cc.convert(item.word, useT), meaning: cc.convert(item.meaning, useT) }
             })
             this.setData({ annotationList: displayList })
@@ -125,9 +137,8 @@ Page({
         }
       }
 
-      // 并行加载作者信息（非阻塞）
       if (poem.author) {
-        api.getAuthorByName(poem.author).then(author => {
+        api.getAuthorByName(poem.author).then((author) => {
           this._rawAuthorInfo = author
           this.setData({
             authorInfo: Object.assign({}, author, {
@@ -137,7 +148,7 @@ Page({
           })
         }).catch(() => {})
       }
-    }).catch(err => {
+    }).catch((err) => {
       console.error('加载失败:', err)
       wx.showToast({ title: '加载失败', icon: 'none' })
     }).finally(() => {
@@ -145,75 +156,162 @@ Page({
     })
   },
 
-  // 切换Tab
   switchTab(e) {
     const tab = e.currentTarget.dataset.tab
     this.setData({ activeTab: tab })
   },
 
-  // 切换沉浸模式
   toggleImmersive() {
     if (this.data.showPinyinModal) return
     this.setData({ immersiveMode: !this.data.immersiveMode })
   },
 
-  // 展开/收起作者介绍
   toggleAuthorBio() {
     this.setData({ showAuthorBio: !this.data.showAuthorBio })
   },
 
-  // 长按标题
   onLongPressTitle() {
-    this.showPinyinPopup(this.data.poem.title)
+    this.showPinyinPopup(this.data.poem.title, { type: 'text' })
   },
 
-  // 长按作者
   onLongPressAuthor() {
-    this.showPinyinPopup(this.data.poem.author)
+    this.showPinyinPopup(this.data.poem.author, { type: 'text' })
   },
 
-  // 长按诗词内容行
   onLongPressLine(e) {
     const line = e.currentTarget.dataset.line
-    this.showPinyinPopup(line)
+    const index = e.currentTarget.dataset.index
+    this.showPinyinPopup(line, {
+      type: 'sentence',
+      index: index
+    })
   },
 
-  // 显示拼音弹窗
-  showPinyinPopup(text) {
+  showPinyinPopup(text, options) {
     if (!text) return
+    options = options || {}
+    const index = options.index === undefined || options.index === null
+      ? -1
+      : parseInt(options.index, 10)
     this.setData({
       showPinyinModal: true,
       pinyinLoading: true,
+      pinyinError: false,
       longPressText: text,
+      longPressIndex: isNaN(index) ? -1 : index,
+      longPressType: options.type || '',
+      sentenceFavoriteCollected: false,
       pinyinData: null
     })
-    api.getPinyin(text).then(result => {
-      this.setData({ pinyinData: result, pinyinLoading: false })
+
+    api.getPinyin(text).then((result) => {
+      this.setData({
+        pinyinData: result,
+        pinyinLoading: false,
+        pinyinError: false
+      })
+      if (options.type === 'sentence' && this.data.poem && this.data.poem.id !== undefined) {
+        this.loadSentenceFavoriteStatus(this.data.poem.id, this.data.longPressIndex)
+      }
     }).catch(() => {
       wx.showToast({ title: '拼音加载失败', icon: 'none' })
-      this.setData({ showPinyinModal: false, pinyinLoading: false })
+      this.setData({
+        pinyinLoading: false,
+        pinyinError: true,
+        pinyinData: null
+      })
     })
   },
 
-  // 复制文本
   copyText() {
     wx.setClipboardData({ data: this.data.longPressText })
   },
 
-  // 关闭拼音弹窗
-  closePinyinModal() {
-    this.setData({ showPinyinModal: false, pinyinData: null })
+  loadFavoriteStatus(poemId) {
+    if (!poemId || !getApp().globalData.isLoggedIn) return
+    api.getFavoriteStatus(poemId).then((status) => {
+      this.setData({
+        isFavoriteFull: !!(status && status.fullCollected)
+      })
+    }).catch(() => {})
   },
 
-  // 跳转到卡片分享页
+  loadSentenceFavoriteStatus(poemId, sentenceIndex) {
+    if (!poemId || sentenceIndex === undefined || sentenceIndex === null || !getApp().globalData.isLoggedIn) return
+    api.getFavoriteStatus(poemId, sentenceIndex).then((status) => {
+      this.setData({
+        sentenceFavoriteCollected: !!(status && status.sentenceCollected)
+      })
+    }).catch(() => {})
+  },
+
+  toggleFullFavorite() {
+    const poem = this.data.poem
+    if (!poem || !poem.id) return
+    if (!getApp().globalData.isLoggedIn) {
+      wx.showToast({ title: '请先登录', icon: 'none' })
+      return
+    }
+    if (this.data.favoriteLoading) return
+    this.setData({ favoriteLoading: true })
+    api.toggleFullFavorite(poem.id).then((result) => {
+      const collected = !!(result && result.collected)
+      this.setData({ isFavoriteFull: collected })
+      wx.showToast({ title: collected ? '已收藏全文' : '已取消收藏', icon: 'success' })
+    }).catch((err) => {
+      wx.showToast({ title: (err && err.message) || '操作失败', icon: 'none' })
+    }).finally(() => {
+      this.setData({ favoriteLoading: false })
+    })
+  },
+
+  toggleSentenceFavorite() {
+    const poem = this.data.poem
+    if (!poem || !poem.id) return
+    if (!getApp().globalData.isLoggedIn) {
+      wx.showToast({ title: '请先登录', icon: 'none' })
+      return
+    }
+    if (this.data.sentenceFavoriteLoading) return
+    if (this.data.longPressType !== 'sentence') return
+
+    const sentenceText = this.data.longPressText || ''
+    const sentenceIndex = this.data.longPressIndex
+    if (sentenceIndex === undefined || sentenceIndex === null || sentenceIndex < 0) {
+      wx.showToast({ title: '句子信息不完整', icon: 'none' })
+      return
+    }
+
+    this.setData({ sentenceFavoriteLoading: true })
+    api.toggleSentenceFavorite(poem.id, sentenceIndex, sentenceText).then((result) => {
+      const collected = !!(result && result.collected)
+      this.setData({ sentenceFavoriteCollected: collected })
+      wx.showToast({ title: collected ? '已收藏句子' : '已取消收藏', icon: 'success' })
+    }).catch((err) => {
+      wx.showToast({ title: (err && err.message) || '操作失败', icon: 'none' })
+    }).finally(() => {
+      this.setData({ sentenceFavoriteLoading: false })
+    })
+  },
+
+  closePinyinModal() {
+    this.setData({
+      showPinyinModal: false,
+      pinyinData: null,
+      pinyinError: false,
+      longPressIndex: -1,
+      longPressType: '',
+      sentenceFavoriteCollected: false
+    })
+  },
+
   goToShare() {
-    const { poem } = this.data
+    const poem = this.data.poem
     if (poem) {
       wx.navigateTo({ url: `/pages/share/index?id=${poem.id}` })
     }
   },
 
-  // 点击标签跳转到发现页筛选
   onTagTap(e) {
     const tag = e.currentTarget.dataset.tag
     getApp().globalData.pendingTag = tag
@@ -221,7 +319,7 @@ Page({
   },
 
   onShareAppMessage() {
-    const { poem } = this.data
+    const poem = this.data.poem
     return poem ? {
       title: `${poem.title} - ${poem.author}`,
       path: `/pages/detail/index?id=${poem.id}`

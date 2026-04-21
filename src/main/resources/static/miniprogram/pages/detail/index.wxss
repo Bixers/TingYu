@@ -234,6 +234,14 @@
   background: #3A4A3F;
 }
 
+.favorite-btn {
+  background: #D4B896;
+}
+
+.favorite-btn.active {
+  background: #C69B6D;
+}
+
 .bottom-btn .btn-label {
   font-size: 28rpx;
   color: #FDF8F0;
@@ -251,6 +259,10 @@
 
 .share-btn .btn-label {
   color: #3A4A3F !important;
+}
+
+.favorite-btn .btn-label {
+  color: #FFFFFF;
 }
 
 /* 沉浸模式退出提示 */
@@ -339,6 +351,7 @@
   gap: 24rpx;
   justify-content: center;
   margin-top: 20rpx;
+  flex-wrap: wrap;
 }
 .pinyin-copy-btn {
   background: #3A4A3F;
@@ -355,10 +368,19 @@
   border-radius: 32rpx;
   padding: 16rpx 48rpx;
 }
+.pinyin-fav-btn {
+  background: #D4B896;
+  border-radius: 32rpx;
+  padding: 16rpx 40rpx;
+}
+.pinyin-fav-btn text {
+  font-size: 26rpx;
+  color: #FFFFFF;
+}
 .pinyin-close-btn text {
   font-size: 26rpx;
   color: #3A4A3F;
 }
-.pinyin-copy-btn:active, .pinyin-close-btn:active {
+.pinyin-copy-btn:active, .pinyin-close-btn:active, .pinyin-fav-btn:active {
   opacity: 0.7;
 }

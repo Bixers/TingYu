@@ -66,6 +66,10 @@ Page({
     })
   },
 
+  goToFavorites() {
+    wx.navigateTo({ url: '/pages/favorite/index' })
+  },
+
   hideLoginForm() {
     if (this.data.submitting) return
     this.setData({ showLoginForm: false })

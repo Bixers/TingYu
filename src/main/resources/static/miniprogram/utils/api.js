@@ -92,6 +92,39 @@ function registerUser(data) {
   return request('/api/user/register', 'POST', data)
 }
 
+function getFavorites(type) {
+  const query = buildQuery({
+    type: type || ''
+  })
+  return request(`/api/favorites${query}`)
+}
+
+function getFavoriteStatus(poemId, sentenceIndex) {
+  const query = buildQuery({
+    poemId: poemId,
+    sentenceIndex: sentenceIndex
+  })
+  return request(`/api/favorites/status${query}`)
+}
+
+function toggleFullFavorite(poemId) {
+  return request('/api/favorites/full/toggle', 'POST', {
+    poemId: poemId
+  })
+}
+
+function toggleSentenceFavorite(poemId, sentenceIndex, sentenceText) {
+  return request('/api/favorites/sentence/toggle', 'POST', {
+    poemId: poemId,
+    sentenceIndex: sentenceIndex,
+    sentenceText: sentenceText
+  })
+}
+
+function deleteFavorite(id) {
+  return request(`/api/favorites/${id}`, 'DELETE')
+}
+
 function parseContent(content) {
   if (!content) return []
   content = content.replace(/\r/g, '')
@@ -136,6 +169,11 @@ module.exports = {
   getPinyin,
   getUserProfile,
   registerUser,
+  getFavorites,
+  getFavoriteStatus,
+  toggleFullFavorite,
+  toggleSentenceFavorite,
+  deleteFavorite,
   parseContent,
   parseTags
 }

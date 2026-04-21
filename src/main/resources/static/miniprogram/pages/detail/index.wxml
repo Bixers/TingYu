@@ -1,27 +1,21 @@
-<!-- pages/detail/index.wxml -->
 <view class="detail-page {{immersiveMode ? 'immersive' : ''}}">
-
-  <!-- 加载状态 -->
   <view class="loading" wx:if="{{loading}}">
     <text>加载中...</text>
   </view>
 
-  <!-- 诗词正文区 -->
   <view class="poem-section fade-in" wx:if="{{poem}}" bindtap="toggleImmersive">
-    <!-- 繁简切换按钮 -->
     <view class="chinese-toggle" catchtap="toggleChinese" wx:if="{{!immersiveMode}}">
       <text class="toggle-text">{{useTraditional ? '繁' : '简'}}</text>
     </view>
     <text class="poem-title" bindlongpress="onLongPressTitle">{{poem.title}}</text>
     <text class="poem-meta" bindlongpress="onLongPressAuthor">{{poem.dynasty}} · {{poem.author}}</text>
     <view class="poem-body">
-      <block wx:for="{{contentLines}}" wx:key="index">
-        <text class="poem-line" bindlongpress="onLongPressLine" data-line="{{item}}">{{item}}</text>
+      <block wx:for="{{contentLines}}" wx:for-item="line" wx:for-index="index" wx:key="index">
+        <text class="poem-line" bindlongpress="onLongPressLine" data-line="{{line}}" data-index="{{index}}">{{line}}</text>
       </block>
     </view>
   </view>
 
-  <!-- 作者介绍 -->
   <view class="author-section" wx:if="{{authorInfo && authorInfo.description && !immersiveMode}}" catchtap="toggleAuthorBio">
     <view class="author-header">
       <text class="author-name">{{authorInfo.name}}</text>
@@ -32,37 +26,27 @@
     </view>
   </view>
 
-  <!-- 标签条 -->
   <view class="tags-section" wx:if="{{tagsList.length > 0 && !immersiveMode}}">
     <scroll-view scroll-x class="tags-scroll">
       <view class="tags-inner">
-        <text class="tag-capsule" wx:for="{{tagsList}}" wx:key="index"
-              bindtap="onTagTap" data-tag="{{item}}">{{item}}</text>
+        <text class="tag-capsule" wx:for="{{tagsList}}" wx:key="index" bindtap="onTagTap" data-tag="{{item}}">{{item}}</text>
       </view>
     </scroll-view>
   </view>
 
-  <!-- Tab 切换条 -->
   <view class="tab-section" wx:if="{{poem && !immersiveMode && (poem.annotation || poem.appreciation || poem.translation)}}">
     <view class="tab-bar">
-      <view class="tab-item {{activeTab === 'annotation' ? 'active' : ''}}"
-            bindtap="switchTab" data-tab="annotation"
-            wx:if="{{poem.annotation}}">
+      <view class="tab-item {{activeTab === 'annotation' ? 'active' : ''}}" bindtap="switchTab" data-tab="annotation" wx:if="{{poem.annotation}}">
         <text>注释</text>
       </view>
-      <view class="tab-item {{activeTab === 'appreciation' ? 'active' : ''}}"
-            bindtap="switchTab" data-tab="appreciation"
-            wx:if="{{poem.appreciation}}">
+      <view class="tab-item {{activeTab === 'appreciation' ? 'active' : ''}}" bindtap="switchTab" data-tab="appreciation" wx:if="{{poem.appreciation}}">
         <text>赏析</text>
       </view>
-      <view class="tab-item {{activeTab === 'translation' ? 'active' : ''}}"
-            bindtap="switchTab" data-tab="translation"
-            wx:if="{{poem.translation}}">
+      <view class="tab-item {{activeTab === 'translation' ? 'active' : ''}}" bindtap="switchTab" data-tab="translation" wx:if="{{poem.translation}}">
         <text>译文</text>
       </view>
     </view>
 
-    <!-- Tab 内容 -->
     <view class="tab-content">
       <view class="tab-panel" wx:if="{{activeTab === 'annotation' && poem.annotation}}">
         <block wx:if="{{annotationList.length > 0}}">
@@ -82,8 +66,10 @@
     </view>
   </view>
 
-  <!-- 底部操作栏 -->
   <view class="bottom-bar" wx:if="{{poem && !immersiveMode}}">
+    <view class="bottom-btn favorite-btn {{isFavoriteFull ? 'active' : ''}}" bindtap="toggleFullFavorite">
+      <text class="btn-label">{{isFavoriteFull ? '已收藏全文' : '收藏全文'}}</text>
+    </view>
     <view class="bottom-btn" bindtap="goToShare">
       <text class="btn-label">生成卡片</text>
     </view>
@@ -92,12 +78,10 @@
     </button>
   </view>
 
-  <!-- 沉浸模式退出提示 -->
   <view class="immersive-hint" wx:if="{{immersiveMode}}">
     <text>点击任意处退出沉浸模式</text>
   </view>
 
-  <!-- 拼音弹窗 -->
   <view class="pinyin-overlay" wx:if="{{showPinyinModal}}" catchtap="closePinyinModal">
     <view class="pinyin-modal" catchtap="">
       <view class="pinyin-loading" wx:if="{{pinyinLoading}}">
@@ -110,9 +94,21 @@
           <text class="pinyin-char">{{item.ch}}</text>
         </view>
       </view>
+      <view class="pinyin-grid" wx:if="{{pinyinError}}">
+        <view class="pinyin-char-group" wx:for="{{longPressText.split('')}}" wx:key="index">
+          <view class="pinyin-placeholder"></view>
+          <text class="pinyin-char">{{item}}</text>
+        </view>
+      </view>
+      <view class="pinyin-loading" wx:if="{{pinyinError}}">
+        <text>拼音获取失败，仍可复制原文</text>
+      </view>
       <view class="pinyin-actions">
         <view class="pinyin-copy-btn" bindtap="copyText">
           <text>复制原文</text>
+        </view>
+        <view class="pinyin-fav-btn" wx:if="{{longPressType === 'sentence'}}" bindtap="toggleSentenceFavorite">
+          <text>{{sentenceFavoriteCollected ? '已收藏句子' : '收藏句子'}}</text>
         </view>
         <view class="pinyin-close-btn" bindtap="closePinyinModal">
           <text>关闭</text>

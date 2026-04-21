@@ -1,0 +1,143 @@
+.favorite-page {
+  min-height: 100vh;
+  padding: 24rpx;
+  box-sizing: border-box;
+  background: linear-gradient(180deg, #F5F3F0 0%, #FDF8F0 100%);
+}
+
+.header {
+  padding: 24rpx 12rpx 16rpx;
+}
+
+.title {
+  display: block;
+  font-size: 44rpx;
+  font-weight: 600;
+  color: #3A4A3F;
+}
+
+.subtitle {
+  display: block;
+  margin-top: 8rpx;
+  font-size: 24rpx;
+  color: #7A8A7F;
+}
+
+.type-tabs {
+  display: flex;
+  gap: 16rpx;
+  margin: 8rpx 0 28rpx;
+}
+
+.type-tab {
+  flex: 1;
+  text-align: center;
+  padding: 20rpx 0;
+  border-radius: 999rpx;
+  background: #FFFFFF;
+  color: #5A6A5F;
+  border: 1rpx solid #E8E4DF;
+}
+
+.type-tab.active {
+  background: #3A4A3F;
+  color: #FFFFFF;
+  border-color: #3A4A3F;
+}
+
+.empty-state,
+.loading {
+  margin-top: 80rpx;
+  text-align: center;
+  padding: 60rpx 32rpx;
+  color: #7A8A7F;
+}
+
+.empty-title {
+  display: block;
+  font-size: 32rpx;
+  color: #3A4A3F;
+}
+
+.empty-desc {
+  display: block;
+  margin-top: 14rpx;
+  font-size: 24rpx;
+  line-height: 1.8;
+}
+
+.empty-btn {
+  margin: 36rpx auto 0;
+  width: 260rpx;
+  padding: 18rpx 0;
+  border-radius: 999rpx;
+  background: #3A4A3F;
+  color: #FFFFFF;
+}
+
+.favorite-list {
+  display: flex;
+  flex-direction: column;
+  gap: 20rpx;
+}
+
+.favorite-card {
+  padding: 28rpx;
+}
+
+.favorite-meta {
+  display: flex;
+  flex-direction: column;
+  gap: 8rpx;
+}
+
+.favorite-title {
+  font-size: 34rpx;
+  font-weight: 600;
+  color: #3A4A3F;
+}
+
+.favorite-author {
+  font-size: 24rpx;
+  color: #7A8A7F;
+}
+
+.favorite-content {
+  margin-top: 20rpx;
+}
+
+.favorite-preview,
+.favorite-sentence {
+  display: block;
+  font-size: 28rpx;
+  line-height: 1.8;
+  color: #5A6A5F;
+}
+
+.favorite-sentence {
+  color: #C0694A;
+}
+
+.favorite-actions {
+  display: flex;
+  gap: 16rpx;
+  margin-top: 24rpx;
+}
+
+.action-btn {
+  flex: 1;
+  text-align: center;
+  padding: 18rpx 0;
+  border-radius: 999rpx;
+}
+
+.action-btn.outline {
+  background: #FFFFFF;
+  border: 1rpx solid #E8E4DF;
+  color: #3A4A3F;
+}
+
+.action-btn.solid {
+  background: #3A4A3F;
+  color: #FFFFFF;
+}

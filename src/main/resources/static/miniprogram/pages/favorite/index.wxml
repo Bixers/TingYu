@@ -1,0 +1,59 @@
+<view class="favorite-page">
+  <view class="header">
+    <text class="title">收藏</text>
+    <text class="subtitle">全文与句子收藏统一管理</text>
+  </view>
+
+  <view class="type-tabs">
+    <view class="type-tab {{activeType === 'FULL' ? 'active' : ''}}" bindtap="switchType" data-type="FULL">
+      <text>全文收藏</text>
+    </view>
+    <view class="type-tab {{activeType === 'SENTENCE' ? 'active' : ''}}" bindtap="switchType" data-type="SENTENCE">
+      <text>句子收藏</text>
+    </view>
+  </view>
+
+  <view class="empty-state" wx:if="{{!loggedIn}}">
+    <text class="empty-title">登录后可查看收藏</text>
+    <text class="empty-desc">前往“我的”页完成微信登录后即可使用收藏功能</text>
+    <view class="empty-btn" bindtap="goToLogin">
+      <text>去登录</text>
+    </view>
+  </view>
+
+  <view class="loading" wx:if="{{loggedIn && loading}}">
+    <text>加载中...</text>
+  </view>
+
+  <view class="empty-state" wx:if="{{loggedIn && !loading && favorites.length === 0}}">
+    <text class="empty-title">这里还没有收藏</text>
+    <text class="empty-desc">{{activeType === 'FULL' ? '在详情页点“收藏全文”即可保存整首诗词' : '在复制原文弹窗里点“收藏句子”即可保存单句'}}</text>
+  </view>
+
+  <view class="favorite-list" wx:if="{{loggedIn && !loading && favorites.length > 0}}">
+    <view class="favorite-card card fade-in" wx:for="{{favorites}}" wx:key="id">
+      <view class="favorite-meta">
+        <text class="favorite-title">{{item.poemTitle}}</text>
+        <text class="favorite-author">{{item.poemDynasty}} · {{item.poemAuthor}}</text>
+      </view>
+
+      <view class="favorite-content" wx:if="{{activeType === 'FULL'}}">
+        <text class="favorite-preview">{{item.preview}}</text>
+      </view>
+
+      <view class="favorite-content" wx:if="{{activeType === 'SENTENCE'}}">
+        <text class="favorite-sentence">{{item.sentenceText}}</text>
+        <text class="favorite-preview text-muted">{{item.preview}}</text>
+      </view>
+
+      <view class="favorite-actions">
+        <view class="action-btn outline" bindtap="goToDetail" data-id="{{item.poemId}}">
+          <text>去查看</text>
+        </view>
+        <view class="action-btn solid" bindtap="deleteFavorite" data-id="{{item.id}}">
+          <text>取消收藏</text>
+        </view>
+      </view>
+    </view>
+  </view>
+</view>

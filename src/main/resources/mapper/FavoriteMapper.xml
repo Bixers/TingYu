@@ -1,0 +1,87 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.tencent.wxcloudrun.dao.FavoriteMapper">
+
+    <resultMap id="FavoriteResultMap" type="com.tencent.wxcloudrun.model.Favorite">
+        <id property="id" column="id"/>
+        <result property="userId" column="user_id"/>
+        <result property="favoriteType" column="favorite_type"/>
+        <result property="poemId" column="poem_id"/>
+        <result property="targetKey" column="target_key"/>
+        <result property="sentenceIndex" column="sentence_index"/>
+        <result property="sentenceText" column="sentence_text"/>
+        <result property="createdAt" column="created_at"/>
+        <result property="updatedAt" column="updated_at"/>
+        <result property="poemTitle" column="poem_title"/>
+        <result property="poemDynasty" column="poem_dynasty"/>
+        <result property="poemAuthor" column="poem_author"/>
+        <result property="poemContent" column="poem_content"/>
+        <result property="poemTags" column="poem_tags"/>
+    </resultMap>
+
+    <insert id="insert" parameterType="com.tencent.wxcloudrun.model.Favorite">
+        INSERT INTO favorites (
+            id, user_id, favorite_type, poem_id, target_key, sentence_index,
+            sentence_text, created_at, updated_at
+        ) VALUES (
+            #{id}, #{userId}, #{favoriteType}, #{poemId}, #{targetKey}, #{sentenceIndex},
+            #{sentenceText}, #{createdAt}, #{updatedAt}
+        )
+    </insert>
+
+    <delete id="deleteById">
+        DELETE FROM favorites WHERE id = #{id}
+    </delete>
+
+    <delete id="deleteByUserIdAndTypeAndTargetKey">
+        DELETE FROM favorites
+        WHERE user_id = #{userId}
+          AND favorite_type = #{favoriteType}
+          AND target_key = #{targetKey}
+    </delete>
+
+    <select id="findById" resultMap="FavoriteResultMap">
+        SELECT f.*,
+               p.title AS poem_title,
+               p.dynasty AS poem_dynasty,
+               p.author AS poem_author,
+               p.content AS poem_content,
+               p.tags AS poem_tags
+        FROM favorites f
+        LEFT JOIN poems p ON p.id = f.poem_id
+        WHERE f.id = #{id}
+        LIMIT 1
+    </select>
+
+    <select id="findByUserIdAndTypeAndTargetKey" resultMap="FavoriteResultMap">
+        SELECT f.*,
+               p.title AS poem_title,
+               p.dynasty AS poem_dynasty,
+               p.author AS poem_author,
+               p.content AS poem_content,
+               p.tags AS poem_tags
+        FROM favorites f
+        LEFT JOIN poems p ON p.id = f.poem_id
+        WHERE f.user_id = #{userId}
+          AND f.favorite_type = #{favoriteType}
+          AND f.target_key = #{targetKey}
+        LIMIT 1
+    </select>
+
+    <select id="findByUserId" resultMap="FavoriteResultMap">
+        SELECT f.*,
+               p.title AS poem_title,
+               p.dynasty AS poem_dynasty,
+               p.author AS poem_author,
+               p.content AS poem_content,
+               p.tags AS poem_tags
+        FROM favorites f
+        LEFT JOIN poems p ON p.id = f.poem_id
+        WHERE f.user_id = #{userId}
+        <if test="favoriteType != null and favoriteType != ''">
+            AND f.favorite_type = #{favoriteType}
+        </if>
+        ORDER BY f.created_at DESC
+    </select>
+
+</mapper>

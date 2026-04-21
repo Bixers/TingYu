@@ -4,6 +4,7 @@
     "pages/detail/index",
     "pages/discover/index",
     "pages/share/index",
+    "pages/favorite/index",
     "pages/profile/index"
   ],
   "window": {
