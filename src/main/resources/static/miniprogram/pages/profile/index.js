@@ -5,6 +5,9 @@ Page({
   data: {
     isLoggedIn: false,
     userInfo: null,
+    showLoginForm: false,
+    tempAvatarUrl: '',
+    tempNickname: '',
     submitting: false
   },
 
@@ -46,6 +49,42 @@ Page({
     })
   },
 
+  showLoginForm() {
+    this.setData({
+      showLoginForm: true,
+      tempAvatarUrl: '',
+      tempNickname: ''
+    })
+  },
+
+  editProfile() {
+    const userInfo = this.data.userInfo || {}
+    this.setData({
+      showLoginForm: true,
+      tempAvatarUrl: userInfo.avatarUrl || '',
+      tempNickname: userInfo.nickname || ''
+    })
+  },
+
+  hideLoginForm() {
+    if (this.data.submitting) return
+    this.setData({ showLoginForm: false })
+  },
+
+  onChooseAvatar(e) {
+    const avatarUrl = e.detail && e.detail.avatarUrl ? e.detail.avatarUrl : ''
+    if (!avatarUrl) {
+      wx.showToast({ title: '请选择头像', icon: 'none' })
+      return
+    }
+    this.setData({ tempAvatarUrl: avatarUrl })
+  },
+
+  onNicknameInput(e) {
+    const nickname = e.detail && e.detail.value ? e.detail.value : ''
+    this.setData({ tempNickname: nickname })
+  },
+
   uploadAvatar(avatarUrl) {
     if (!avatarUrl) {
       return Promise.resolve('')
@@ -78,59 +117,45 @@ Page({
     })
   },
 
-  authorizeLogin() {
+  submitLogin() {
     if (this.data.submitting) return
+
+    const nickname = (this.data.tempNickname || '').trim()
+    const avatarUrl = this.data.tempAvatarUrl || ''
+
+    if (!avatarUrl) {
+      wx.showToast({ title: '请先选择头像', icon: 'none' })
+      return
+    }
+    if (!nickname) {
+      wx.showToast({ title: '请填写昵称', icon: 'none' })
+      return
+    }
 
     this.setData({ submitting: true })
 
-    wx.getUserProfile({
-      desc: '用于完成小程序登录',
-      success: (res) => {
-        const wxUserInfo = res.userInfo || {}
-        const nickname = (wxUserInfo.nickName || '').trim()
+    this.uploadAvatar(avatarUrl).then((uploadedAvatarUrl) => {
+      return api.registerUser({
+        nickname,
+        avatarUrl: uploadedAvatarUrl
+      })
+    }).then((user) => {
+      app.globalData.userInfo = user
+      app.globalData.isLoggedIn = true
+      wx.setStorageSync('userInfo', user)
 
-        if (!nickname) {
-          this.setData({ submitting: false })
-          wx.showToast({ title: '未获取到微信昵称', icon: 'none' })
-          return
-        }
-
-        this.uploadAvatar(wxUserInfo.avatarUrl).then((avatarUrl) => {
-          return api.registerUser({
-            nickname,
-            avatarUrl
-          })
-        }).then((user) => {
-          app.globalData.userInfo = user
-          app.globalData.isLoggedIn = true
-          wx.setStorageSync('userInfo', user)
-
-          this.setData({
-            isLoggedIn: true,
-            userInfo: user,
-            submitting: false
-          })
-          wx.showToast({ title: '登录成功', icon: 'success' })
-        }).catch((err) => {
-          console.error('登录失败', err)
-          this.setData({ submitting: false })
-          wx.showToast({ title: '登录失败，请重试', icon: 'none' })
-        })
-      },
-      fail: (err) => {
-        console.warn('用户取消授权或授权失败', err)
-        this.setData({ submitting: false })
-        if (err && err.errMsg && err.errMsg.indexOf('auth deny') !== -1) {
-          wx.showToast({ title: '你已取消微信授权', icon: 'none' })
-          return
-        }
-        wx.showToast({ title: '暂时无法获取微信资料', icon: 'none' })
-      }
+      this.setData({
+        isLoggedIn: true,
+        userInfo: user,
+        showLoginForm: false,
+        submitting: false
+      })
+      wx.showToast({ title: '登录成功', icon: 'success' })
+    }).catch((err) => {
+      console.error('登录失败', err)
+      this.setData({ submitting: false })
+      wx.showToast({ title: '登录失败，请重试', icon: 'none' })
     })
-  },
-
-  editProfile() {
-    this.authorizeLogin()
   },
 
   logout() {
@@ -146,7 +171,10 @@ Page({
         wx.removeStorageSync('userInfo')
         this.setData({
           isLoggedIn: false,
-          userInfo: null
+          userInfo: null,
+          showLoginForm: false,
+          tempAvatarUrl: '',
+          tempNickname: ''
         })
         wx.showToast({ title: '已退出', icon: 'success' })
       }

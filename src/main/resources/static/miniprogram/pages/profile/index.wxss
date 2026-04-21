@@ -13,12 +13,19 @@
   align-items: center;
 }
 
-.user-avatar {
+.user-avatar,
+.avatar-preview {
   width: 120rpx;
   height: 120rpx;
   border-radius: 50%;
   background: #F5F3F0;
   flex-shrink: 0;
+}
+
+.avatar-preview {
+  width: 144rpx;
+  height: 144rpx;
+  border: 4rpx dashed #D9C9B3;
 }
 
 .user-detail {
@@ -48,26 +55,64 @@
   align-items: center;
 }
 
+.form-guide {
+  align-items: stretch;
+}
+
 .login-title {
   font-size: 34rpx;
   font-weight: 600;
   color: #3A4A3F;
+  text-align: center;
 }
 
 .login-desc {
   font-size: 26rpx;
   margin-top: 12rpx;
+  text-align: center;
 }
 
-.login-btn {
-  margin-top: 40rpx;
-  width: 360rpx;
+.login-btn,
+.secondary-btn {
+  margin-top: 32rpx;
+  width: 100%;
   line-height: 88rpx;
   border: none;
 }
 
-.login-btn::after {
+.login-btn::after,
+.secondary-btn::after,
+.avatar-picker::after {
   display: none;
+}
+
+.avatar-picker {
+  margin-top: 40rpx;
+  padding: 24rpx;
+  border: none;
+  background: #F9F6F1;
+  border-radius: 24rpx;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.avatar-tip {
+  margin-top: 20rpx;
+  font-size: 24rpx;
+  color: #7A8A7F;
+}
+
+.nickname-input {
+  width: 100%;
+  height: 88rpx;
+  margin-top: 24rpx;
+  padding: 0 24rpx;
+  box-sizing: border-box;
+  border-radius: 20rpx;
+  background: #F9F6F1;
+  color: #3A4A3F;
+  font-size: 30rpx;
 }
 
 .menu-section {

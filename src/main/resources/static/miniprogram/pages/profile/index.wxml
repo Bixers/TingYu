@@ -4,24 +4,50 @@
       <image class="user-avatar" src="{{userInfo.avatarUrl || '/images/profile_normal.png'}}" mode="aspectFill"></image>
       <view class="user-detail">
         <text class="user-nickname">{{userInfo.nickname}}</text>
-        <text class="user-id text-muted">微信授权已绑定</text>
+        <text class="user-id text-muted">微信头像昵称已绑定</text>
       </view>
     </view>
   </view>
 
-  <view class="login-card card fade-in" wx:if="{{!isLoggedIn}}">
+  <view class="login-card card fade-in" wx:if="{{!isLoggedIn && !showLoginForm}}">
     <view class="login-guide">
       <text class="login-title">登录后体验更多功能</text>
-      <text class="login-desc text-muted">使用微信小程序授权，快速同步昵称与头像</text>
-      <button class="btn-primary login-btn" bindtap="authorizeLogin" loading="{{submitting}}" disabled="{{submitting}}">
-        {{submitting ? '授权中...' : '微信授权登录'}}
+      <text class="login-desc text-muted">点击后填写微信头像与昵称，完成小程序登录</text>
+      <button class="btn-primary login-btn" bindtap="showLoginForm">微信登录</button>
+    </view>
+  </view>
+
+  <view class="login-card card fade-in" wx:if="{{showLoginForm}}">
+    <view class="login-guide form-guide">
+      <text class="login-title">{{isLoggedIn ? '更新微信资料' : '完善微信资料'}}</text>
+      <text class="login-desc text-muted">请通过微信能力选择头像并填写昵称</text>
+
+      <button class="avatar-picker" open-type="chooseAvatar" bindchooseavatar="onChooseAvatar">
+        <image class="avatar-preview" src="{{tempAvatarUrl || userInfo.avatarUrl || '/images/profile_normal.png'}}" mode="aspectFill"></image>
+        <text class="avatar-tip">点击选择微信头像</text>
+      </button>
+
+      <input
+        class="nickname-input"
+        type="nickname"
+        placeholder="请输入微信昵称"
+        value="{{tempNickname}}"
+        bindinput="onNicknameInput"
+      />
+
+      <button class="btn-primary login-btn" bindtap="submitLogin" loading="{{submitting}}" disabled="{{submitting}}">
+        {{submitting ? '提交中...' : '确认登录'}}
+      </button>
+
+      <button class="btn-secondary secondary-btn" bindtap="hideLoginForm" disabled="{{submitting}}">
+        取消
       </button>
     </view>
   </view>
 
   <view class="menu-section card fade-in" wx:if="{{isLoggedIn}}">
     <view class="menu-item" bindtap="editProfile">
-      <text class="menu-text">重新获取微信资料</text>
+      <text class="menu-text">重新获取头像昵称</text>
       <text class="menu-arrow">></text>
     </view>
   </view>
