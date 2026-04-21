@@ -140,6 +140,67 @@ CREATE TABLE IF NOT EXISTS users (
     open_id VARCHAR(128) NOT NULL UNIQUE,
     nickname VARCHAR(100) NOT NULL,
     avatar_url VARCHAR(500),
+    rain_push_enabled TINYINT(1) NOT NULL DEFAULT 0 COMMENT '是否接收每日雨丝',
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- 摘录本
+CREATE TABLE IF NOT EXISTS excerpts (
+    id VARCHAR(64) PRIMARY KEY COMMENT '摘录ID',
+    user_id VARCHAR(100) NOT NULL COMMENT '用户ID',
+    poem_id VARCHAR(64) NOT NULL COMMENT '诗词ID',
+    sentence_index INT NOT NULL COMMENT '句子序号',
+    sentence_text TEXT NOT NULL COMMENT '摘录句子',
+    note TEXT COMMENT '私人批注',
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '更新时间',
+    INDEX idx_user_id (user_id),
+    INDEX idx_poem_id (poem_id),
+    INDEX idx_created_at (created_at),
+    UNIQUE KEY uk_user_poem_sentence (user_id, poem_id, sentence_index, sentence_text(255))
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='摘录本';
+
+-- 诗舟漂流
+CREATE TABLE IF NOT EXISTS boat_messages (
+    id VARCHAR(64) PRIMARY KEY COMMENT '诗笺ID',
+    user_id VARCHAR(100) NOT NULL COMMENT '用户ID',
+    content VARCHAR(500) NOT NULL COMMENT '诗句内容',
+    signature VARCHAR(100) NOT NULL DEFAULT '听雨客' COMMENT '匿名署名',
+    parent_message_id VARCHAR(64) DEFAULT NULL COMMENT '回复的原诗笺ID',
+    reply_count INT NOT NULL DEFAULT 0 COMMENT '回复数量',
+    is_deleted TINYINT NOT NULL DEFAULT 0 COMMENT '是否删除',
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '更新时间',
+    INDEX idx_user_id (user_id),
+    INDEX idx_parent_message_id (parent_message_id),
+    INDEX idx_created_at (created_at)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='诗舟诗笺表';
+
+CREATE TABLE IF NOT EXISTS boat_matches (
+    id VARCHAR(64) PRIMARY KEY COMMENT '匹配ID',
+    user_id VARCHAR(100) NOT NULL COMMENT '用户ID',
+    message_id VARCHAR(64) NOT NULL COMMENT '诗笺ID',
+    match_type VARCHAR(20) NOT NULL COMMENT '匹配类型：RECEIVED=收取，BOOKMARKED=收藏，REPLIED=回复',
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
+    UNIQUE KEY uk_user_message_type (user_id, message_id, match_type),
+    INDEX idx_user_id (user_id),
+    INDEX idx_message_id (message_id),
+    INDEX idx_match_type (match_type)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='诗舟匹配记录表';
+
+-- 用户阅读足迹统计
+CREATE TABLE IF NOT EXISTS user_activity_daily (
+    id VARCHAR(64) PRIMARY KEY COMMENT '统计ID',
+    user_id VARCHAR(100) NOT NULL COMMENT '用户ID',
+    activity_date DATE NOT NULL COMMENT '统计日期',
+    poem_views INT NOT NULL DEFAULT 0 COMMENT '诗词浏览次数',
+    search_count INT NOT NULL DEFAULT 0 COMMENT '搜索次数',
+    excerpt_count INT NOT NULL DEFAULT 0 COMMENT '摘录次数',
+    favorite_count INT NOT NULL DEFAULT 0 COMMENT '收藏次数',
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '更新时间',
+    UNIQUE KEY uk_user_date (user_id, activity_date),
+    INDEX idx_user_id (user_id),
+    INDEX idx_activity_date (activity_date)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='用户阅读足迹统计';
