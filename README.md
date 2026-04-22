@@ -1,138 +1,144 @@
-# 鍚洦鐪犺垷 (TingYu)
+# 听雨眠舟 (TingYu)
 
-> 鏄ユ按纰т簬澶╋紝鐢昏埞鍚洦鐪?
+> 春水碧于天，画船听雨眠
 
-鍙ゅ吀璇楄瘝寰俊灏忕▼搴忥紝鎻愪緵璇楄瘝娴忚銆佹悳绱€佸崱鐗囧垎浜€佹嫾闊虫敞闊崇瓑鍔熻兘銆傚熀浜?Spring Boot + 寰俊浜戞墭绠?+ MySQL 鏋勫缓銆?
+古典诗词微信小程序，提供诗词浏览、搜索、卡片分享、拼音注音等功能。基于 Spring Boot + 微信云托管 + MySQL 构建。
 
-## 鍔熻兘鐗规€?
+## 功能特性
 
-### 灏忕▼搴忕
-- **棣栭〉** - 姣忔棩鎺ㄨ崘 / 闅忔満鍒囨崲璇楄瘝鍗＄墖
-- **鍙戠幇** - 鏈濅唬绛涢€夈€佹爣绛剧瓫閫夈€佸叧閿瘝鎼滅储锛屽垎椤垫祻瑙?
-- **璇︽儏** - 娉ㄩ噴 / 璧忔瀽 / 璇戞枃 Tab 鍒囨崲锛屼綔鑰呬粙缁嶏紝鏍囩璺宠浆锛屾矇娴搁槄璇绘ā寮?
-- **鎴戠殑** - 寰俊鎺堟潈鐧诲綍锛堝ご鍍?鏄电О锛夛紝淇敼璧勬枡锛岄€€鍑?閲嶆柊缁戝畾
-- **绻佺畝鍒囨崲** - 璇楄瘝榛樿绠€浣撳睍绀猴紝棣栭〉/璇︽儏椤典竴閿箒绠€鍒囨崲锛岃法椤靛亸濂藉悓姝?
-- **鎷奸煶** - 闀挎寜璇楀彞/鏍囬/浣滆€呮樉绀哄甫澹拌皟鎷奸煶锛屾敮鎸佸鍒?
-- **鍗＄墖鍒嗕韩** - 5娆炬ā鏉匡紙绱犵焊/澧ㄥ/绔归潚/娣￠噾/鐑熼洦锛夛紝淇濆瓨鐩稿唽鎴栧垎浜ソ鍙?
-- **鑷€傚簲鍗＄墖** - 闀胯瘲鑷姩鎵╁睍鍗＄墖楂樺害
+### 小程序端
+- **首页** - 每日推荐 / 随机切换诗词卡片
+- **发现** - 朝代筛选、标签筛选、关键词搜索，分页浏览
+- **详情** - 注释 / 赏析 / 译文 Tab 切换，作者介绍，标签跳转，沉浸阅读模式
+- **我的** - 微信授权登录（头像+昵称），修改资料，退出/重新绑定
+- **繁简切换** - 诗词默认简体展示，首页/详情页一键繁简切换，跨页偏好同步
+- **拼音** - 长按诗句/标题/作者显示带声调拼音，支持复制
+- **卡片分享** - 5款模板（素纸/墨夜/竹青/淡金/烟雨），保存相册或分享好友
+- **自适应卡片** - 长诗自动扩展卡片高度
 
-### 鍚庣鏈嶅姟
-- **璇楄瘝鐖櫕** - 鑷姩浠?[chinese-poetry](https://github.com/chinese-poetry/chinese-poetry) 鍜?[ChinesePoetryLibrary](https://github.com/byj233/ChinesePoetryLibrary) 瀵煎叆璇楄瘝鏁版嵁
-- **瀵屽寲鏁版嵁** - 鑷姩鍖归厤骞惰ˉ鍏呰瘧鏂囥€佽祻鏋愩€佹敞閲婏紙璇嶄箟瀵圭収锛?
-- **瀹氭椂浠诲姟** - 姣忓懆涓€鍑屾櫒鑷姩瀵煎叆鏂版暟鎹紝鍚姩鏃跺紓姝ュ閲忓鍏?
-- **鏅鸿兘鏍囩** - 鍩轰簬鍏抽敭璇嶈嚜鍔ㄦ帹鏂瘲璇嶆爣绛撅紙瀛ｈ妭/鎰忚薄/棰樻潗/鎯呮劅绛夛級
-- **鎷奸煶鏈嶅姟** - pinyin4j 涓枃杞嫾闊筹紙鍚０璋冿級
-- **鐢ㄦ埛绯荤粺** - 鍩轰簬寰俊 OpenID 鐨勭敤鎴锋敞鍐?鏇存柊锛屽ご鍍忎簯瀛樺偍
+### 后端服务
+- **诗词爬虫** - 自动从 [chinese-poetry](https://github.com/chinese-poetry/chinese-poetry) 和 [ChinesePoetryLibrary](https://github.com/byj233/ChinesePoetryLibrary) 导入诗词数据
+- **富化数据** - 自动匹配并补充译文、赏析、注释（词义对照）
+- **定时任务** - 每周一凌晨自动导入新数据，启动时异步增量导入
+- **智能标签** - 基于关键词自动推断诗词标签（季节/意象/题材/情感等）
+- **拼音服务** - pinyin4j 中文转拼音（含声调）
+- **用户系统** - 基于微信 OpenID 的用户注册/更新，头像云存储
 
-## 鎶€鏈爤
+## 技术栈
 
-| 灞傜骇 | 鎶€鏈?|
+| 层级 | 技术 |
 |------|------|
-| 鍚庣 | Spring Boot 2.5.5 / JDK 8 / MyBatis |
-| 鏁版嵁搴?| MySQL (UTF8MB4) |
-| 鍓嶇 | 寰俊灏忕▼搴忓師鐢熸鏋?(WXML/WXSS/JS) |
-| 閮ㄧ讲 | Docker 澶氶樁娈垫瀯寤?/ 寰俊浜戞墭绠?|
-| 鏁版嵁婧?| chinese-poetry, ChinesePoetryLibrary (MPL-2.0) |
+| 后端 | Spring Boot 2.5.5 / JDK 8 / MyBatis |
+| 数据库 | MySQL (UTF8MB4) |
+| 前端 | 微信小程序原生框架 (WXML/WXSS/JS) |
+| 部署 | Docker 多阶段构建 / 微信云托管 |
+| 数据源 | chinese-poetry, ChinesePoetryLibrary (MPL-2.0) |
 
-## 椤圭洰缁撴瀯
+## 项目结构
 
 ```
 .
-鈹溾攢鈹€ Dockerfile                          Docker 澶氶樁娈垫瀯寤?
-鈹溾攢鈹€ pom.xml                             Maven 閰嶇疆
-鈹斺攢鈹€ src/main
-    鈹溾攢鈹€ java/com/tencent/wxcloudrun
-    鈹?  鈹溾攢鈹€ WxCloudRunApplication.java  鍚姩鍏ュ彛 (@EnableAsync @EnableScheduling)
-    鈹?  鈹溾攢鈹€ controller/
-    鈹?  鈹?  鈹溾攢鈹€ PoemController.java     璇楄瘝 API (鍒楄〃/璇︽儏/鎼滅储/闅忔満/姣忔棩)
-    鈹?  鈹?  鈹溾攢鈹€ AuthorController.java   浣滆€?API
-    鈹?  鈹?  鈹溾攢鈹€ TagController.java      鏍囩 API
-    鈹?  鈹?  鈹溾攢鈹€ MetaController.java     鏈濅唬/浣滆€呯粺璁?API
-    鈹?  鈹?  鈹溾攢鈹€ UserController.java     鐢ㄦ埛 API (鐧诲綍/娉ㄥ唽/璧勬枡)
-    鈹?  鈹?  鈹溾攢鈹€ AdminController.java    绠＄悊鎺ュ彛 (瑙﹀彂瀵煎叆)
-    鈹?  鈹?  鈹溾攢鈹€ ToolController.java     宸ュ叿 API (鎷奸煶杞崲)
-    鈹?  鈹?  鈹斺攢鈹€ IndexController.java    鍋ュ悍妫€鏌?
-    鈹?  鈹溾攢鈹€ service/
-    鈹?  鈹?  鈹溾攢鈹€ PoemService.java        璇楄瘝涓氬姟閫昏緫
-    鈹?  鈹?  鈹溾攢鈹€ PoemCrawlerService.java 鐖櫕 + 瀹氭椂/鍚姩瀵煎叆
-    鈹?  鈹?  鈹溾攢鈹€ PinyinService.java      鎷奸煶杞崲
-    鈹?  鈹?  鈹溾攢鈹€ AuthorService.java      浣滆€呮煡璇?
-    鈹?  鈹?  鈹溾攢鈹€ TagService.java         鏍囩鏌ヨ
-    鈹?  鈹?  鈹溾攢鈹€ MetaService.java        缁熻鏌ヨ
-    鈹?  鈹?  鈹斺攢鈹€ UserService.java        鐢ㄦ埛娉ㄥ唽/鏇存柊
-    鈹?  鈹溾攢鈹€ dao/                        MyBatis Mapper 鎺ュ彛
-    鈹?  鈹溾攢鈹€ model/                      瀹炰綋绫?(Poem, Author, Tag, DailyPoem, User)
-    鈹?  鈹斺攢鈹€ dto/                        DTO (ApiResponse, PageResult, PinyinResult)
-    鈹斺攢鈹€ resources/
-        鈹溾攢鈹€ application.yml             鏁版嵁搴?绔彛閰嶇疆
-        鈹溾攢鈹€ db.sql                      寤鸿〃 + 鍒濆鏁版嵁
-        鈹溾攢鈹€ mapper/                     MyBatis XML 鏄犲皠
-        鈹斺攢鈹€ static/miniprogram/         寰俊灏忕▼搴忓墠绔唬鐮?
-            鈹溾攢鈹€ app.js / app.json       灏忕▼搴忓叆鍙ｉ厤缃?
-            鈹溾攢鈹€ utils/
-            鈹?  鈹溾攢鈹€ api.js              缁熶竴 API 璇锋眰灏佽
-            鈹?  鈹斺攢鈹€ chinese-convert.js  绻佺畝杞崲宸ュ叿 (2500+ 瀛楃鏄犲皠)
-            鈹斺攢鈹€ pages/
-                鈹溾攢鈹€ index/              棣栭〉 (姣忔棩璇楄瘝鍗＄墖)
-                鈹溾攢鈹€ detail/             璇︽儏椤?(娉ㄩ噴/璧忔瀽/璇戞枃/鎷奸煶)
-                鈹溾攢鈹€ discover/           鍙戠幇椤?(鎼滅储/绛涢€?鍒楄〃)
-                鈹溾攢鈹€ share/              鍗＄墖鍒嗕韩椤?(Canvas 缁樺埗)
-                鈹斺攢鈹€ profile/            鎴戠殑椤甸潰 (鐧诲綍/璧勬枡/閫€鍑?
+├── Dockerfile                          Docker 多阶段构建
+├── pom.xml                             Maven 配置
+└── src/main
+    ├── java/com/tencent/wxcloudrun
+    │   ├── WxCloudRunApplication.java  启动入口 (@EnableAsync @EnableScheduling)
+    │   ├── controller/
+    │   │   ├── PoemController.java     诗词 API (列表/详情/搜索/随机/每日)
+    │   │   ├── AuthorController.java   作者 API
+    │   │   ├── TagController.java      标签 API
+    │   │   ├── MetaController.java     朝代/作者统计 API
+    │   │   ├── UserController.java     用户 API (登录/注册/资料)
+    │   │   ├── AdminController.java    管理接口 (触发导入)
+    │   │   ├── ToolController.java     工具 API (拼音转换)
+    │   │   └── IndexController.java    健康检查
+    │   ├── service/
+    │   │   ├── PoemService.java        诗词业务逻辑
+    │   │   ├── PoemCrawlerService.java 爬虫 + 定时/启动导入
+    │   │   ├── PinyinService.java      拼音转换
+    │   │   ├── AuthorService.java      作者查询
+    │   │   ├── TagService.java         标签查询
+    │   │   ├── MetaService.java        统计查询
+    │   │   └── UserService.java        用户注册/更新
+    │   ├── dao/                        MyBatis Mapper 接口
+    │   ├── model/                      实体类 (Poem, Author, Tag, DailyPoem, User)
+    │   └── dto/                        DTO (ApiResponse, PageResult, PinyinResult)
+    └── resources/
+        ├── application.yml             数据库/端口配置
+        ├── db.sql                      建表 + 初始数据
+        ├── mapper/                     MyBatis XML 映射
+        └── static/miniprogram/         微信小程序前端代码
+            ├── app.js / app.json       小程序入口配置
+            ├── utils/
+            │   ├── api.js              统一 API 请求封装
+            │   └── chinese-convert.js  繁简转换工具 (2500+ 字符映射)
+            └── pages/
+                ├── index/              首页 (每日诗词卡片)
+                ├── detail/             详情页 (注释/赏析/译文/拼音)
+                ├── discover/           发现页 (搜索/筛选/列表)
+                ├── share/              卡片分享页 (Canvas 绘制)
+                └── profile/            我的页面 (登录/资料/退出)
 ```
 
-## API 鎺ュ彛
+## API 接口
 
-| 鏂规硶 | 璺緞 | 璇存槑 |
+| 方法 | 路径 | 说明 |
 |------|------|------|
-| GET | `/api/poems/daily` | 浠婃棩鎺ㄨ崘璇楄瘝 |
-| GET | `/api/poems/random` | 闅忔満涓€棣?|
-| GET | `/api/poems/{id}` | 璇楄瘝璇︽儏 |
-| GET | `/api/poems/list` | 鍒嗛〉鍒楄〃 (keyword/dynasty/tag) |
-| POST | `/api/poems/search` | 鎼滅储璇楄瘝 |
-| GET | `/api/tags` | 鍏ㄩ儴鏍囩 |
-| GET | `/api/tags/grouped` | 鎸夊垎绫诲垎缁勭殑鏍囩 |
-| GET | `/api/authors/by-name` | 鎸夊悕绉版煡浣滆€?|
-| GET | `/api/meta/dynasties` | 鏈濅唬缁熻 |
-| GET | `/api/meta/authors` | 浣滆€呯粺璁?|
-| POST | `/api/tools/pinyin` | 涓枃杞嫾闊?|
-| GET | `/api/user/profile` | 鑾峰彇褰撳墠鐢ㄦ埛淇℃伅 |
-| POST | `/api/user/register` | 鐢ㄦ埛娉ㄥ唽/鏇存柊璧勬枡 |
-| POST | `/api/admin/import-poems` | 瑙﹀彂璇楄瘝瀵煎叆 |
+| GET | `/api/poems/daily` | 今日推荐诗词 |
+| GET | `/api/poems/random` | 随机一首 |
+| GET | `/api/poems/{id}` | 诗词详情 |
+| GET | `/api/poems/list` | 分页列表 (keyword/dynasty/tag) |
+| POST | `/api/poems/search` | 搜索诗词 |
+| GET | `/api/tags` | 全部标签 |
+| GET | `/api/tags/grouped` | 按分类分组的标签 |
+| GET | `/api/authors/by-name` | 按名称查作者 |
+| GET | `/api/meta/dynasties` | 朝代统计 |
+| GET | `/api/meta/authors` | 作者统计 |
+| POST | `/api/tools/pinyin` | 中文转拼音 |
+| GET | `/api/user/profile` | 获取当前用户信息 |
+| POST | `/api/user/register` | 用户注册/更新资料 |
+| POST | `/api/admin/import-poems` | 触发诗词导入 |
 
-## 閮ㄧ讲
+## 部署
 
-### 寰俊浜戞墭绠￠儴缃?
+### 微信云托管部署
 
-1. 鍦ㄥ井淇′簯鎵樼鎺у埗鍙板垱寤烘湇鍔?
-2. 鍏宠仈 GitHub 浠撳簱锛岃嚜鍔ㄦ瀯寤洪儴缃?
-3. 閰嶇疆鐜鍙橀噺锛?
-   - `MYSQL_ADDRESS` - 鏁版嵁搴撳湴鍧€ (host:port)
-   - `MYSQL_USERNAME` - 鏁版嵁搴撶敤鎴峰悕
-   - `MYSQL_PASSWORD` - 鏁版嵁搴撳瘑鐮?
-   - `WECHAT_APPID` - 灏忕▼搴?AppID
-   - `WECHAT_SECRET` - 灏忕▼搴忓瘑閽?
-   - `WECHAT_SUBSCRIBE_TEMPLATE_ID` - 姣忔棩闆ㄤ笣璁㈤槄妯℃澘 ID
-   - `WECHAT_SUBSCRIBE_PAGE` - 璁㈤槄娑堟伅璺宠浆椤碉紝榛樿 `pages/detail/index`
+1. 在微信云托管控制台创建服务
+2. 关联 GitHub 仓库，自动构建部署
+3. 配置环境变量：
+   - `MYSQL_ADDRESS` - 数据库地址 (host:port)
+   - `MYSQL_USERNAME` - 数据库用户名
+   - `MYSQL_PASSWORD` - 数据库密码
+   - `WECHAT_APPID` - 小程序 AppID
+   - `WECHAT_SECRET` - 小程序密钥
+   - `WECHAT_SUBSCRIBE_TEMPLATE_ID` - 每日雨丝订阅模板 ID
+   - `WECHAT_SUBSCRIBE_PAGE` - 订阅消息跳转页，默认 `pages/detail/index`
+   - `TENCENT_TTS_APP_ID` - 腾讯云语音合成 AppID
+   - `TENCENT_TTS_SECRET_ID` - 腾讯云语音合成 SecretId
+   - `TENCENT_TTS_SECRET_KEY` - 腾讯云语音合成 SecretKey
+   - `TENCENT_TTS_VOICE` - 朗读音色，默认 `101001`
+   - `TENCENT_TTS_SPEED` - 朗读语速，默认 `0`
+   - `TENCENT_TTS_VOLUME` - 朗读音量，默认 `30`
 
-### 鏈湴寮€鍙?
+### 本地开发
 
 ```bash
-# 纭繚鏈湴 MySQL 宸插垱寤?tingyu 鏁版嵁搴撳苟鎵ц db.sql
+# 确保本地 MySQL 已创建 tingyu 数据库并执行 db.sql
 mvn spring-boot:run
 ```
 
-## 鏁版嵁婧?
+## 数据源
 
-| 鏉ユ簮 | 鍐呭 | 璁稿彲 |
+| 来源 | 内容 | 许可 |
 |------|------|------|
-| [chinese-poetry](https://github.com/chinese-poetry/chinese-poetry) | 5.5涓囧攼璇?+ 26涓囧畫璇?+ 2.1涓囧畫璇?(鍩虹鏁版嵁) | MIT |
-| [ChinesePoetryLibrary](https://github.com/byj233/ChinesePoetryLibrary) | 璇戞枃 / 璧忔瀽 / 娉ㄩ噴 (瀵屽寲鏁版嵁) | MPL-2.0 |
+| [chinese-poetry](https://github.com/chinese-poetry/chinese-poetry) | 5.5万唐诗 + 26万宋诗 + 2.1万宋词 (基础数据) | MIT |
+| [ChinesePoetryLibrary](https://github.com/byj233/ChinesePoetryLibrary) | 译文 / 赏析 / 注释 (富化数据) | MPL-2.0 |
 
 ## License
 
 [MIT](./LICENSE)
 
-## 鏇存柊璁板綍
+## 更新记录
 
 ### v0.1.7 (2026-04-22)
 - 首页增加云请求失败本地兜底：当诗词接口不可用时，会自动切换到本地诗页，避免首屏一直超时。
@@ -140,97 +146,98 @@ mvn spring-boot:run
 - 保持每日推荐、随机切换与诗历入口的正常体验，本地兜底仅作为降级方案。
 
 ### v0.1.6 (2026-04-22)
-- 鎭㈠ `wx.cloud.init` 鐨?`envId`锛岄伩鍏?`cloud.callContainer` 鍥犵己灏戠幆澧冨弬鏁扮洿鎺ュけ璐?
-- `callContainer` 閲嶆柊鍥哄畾浼犲叆 `config.env`锛岀‘淇濋椤佃瘲璇嶇瓑浜戞墭绠℃帴鍙ｅ彲姝ｅ父鎷夎捣
-- 淇濈暀 `traceUser: false`锛岄檷浣庡垵濮嬪寲闃舵鐨勯澶栬姹傚共鎵?
+- 恢复 `wx.cloud.init` 的 `envId`，避免 `cloud.callContainer` 因缺少环境参数直接失败
+- `callContainer` 重新固定传入 `config.env`，确保首页诗词等云托管接口可正常拉起
+- 保留 `traceUser: false`，降低初始化阶段的额外请求干扰
 
 ### v0.1.5 (2026-04-22)
-- 灏忕▼搴忓惎鍔ㄦ椂鍏抽棴 `traceUser`锛岄伩鍏嶄簯鍒濆鍖栭樁娈垫媺璧烽澶栬姹傚鑷村惎鍔ㄥけ璐?
-- API 璇锋眰鏄惧紡浼犲叆 `config.env` / `config.service`锛屾彁鍗囦簯鎵樼璋冪敤绋冲畾鎬?
-- 璇︽儏椤甸洦澹版敼涓哄簳閮ㄥ父椹诲叆鍙ｏ紝鏇村鏄撳彂鐜板苟涓€閿繘鍏ユ矇娴搁槄璇?
+- 小程序启动时关闭 `traceUser`，避免云初始化阶段拉起额外请求导致启动失败
+- API 请求显式传入 `config.env` / `config.service`，提升云托管调用稳定性
+- 详情页雨声改为底部常驻入口，更容易发现并一键进入沉浸阅读
 
 ### v0.1.4 (2026-04-22)
-- 璇煶鏈楄鏀逛负鎺ュ叆鑵捐浜戝畼鏂?Java SDK锛屼慨澶嶈嚜瀹氫箟绛惧悕瀵艰嚧鐨?`AuthFailure.SignatureFailure`
-- 姣忔棩闆ㄤ笣鎺ㄩ€佹椂闂磋皟鏁翠负姣忓ぉ涓婂崍 `10:00`锛屽苟鍥哄畾鎸?`Asia/Shanghai` 鏃跺尯鎵ц
-- 淇璇︽儏椤垫憳褰曞脊绐椾氦浜掞細鐐瑰嚮杈撳叆妗嗕笉鍐嶈鍏冲脊绐楋紝淇濆瓨鎽樺綍鏃跺彲绋冲畾淇濈暀褰撳墠鍙ュ瓙涓婁笅鏂?
+- 语音朗读改为接入腾讯云官方 Java SDK，修复自定义签名导致的 `AuthFailure.SignatureFailure`
+- 每日雨丝推送时间调整为每天上午 `10:00`，并固定按 `Asia/Shanghai` 时区执行
+- 修复详情页摘录弹窗交互：点击输入框不再误关弹窗，保存摘录时可稳定保留当前句子上下文
 
 ### v0.1.3 (2026-04-21)
-- 璇煶鏈楄鍒囨崲涓鸿吘璁簯璇煶鍚堟垚锛屾敮鎸佸浗鍐呯幆澧冪洿杩炰笌闀挎枃鏈换鍔?
-- 闆ㄥ０鐧藉櫔闊虫敮鎸侀」鐩唴鍏滃簳闊抽涓庝簯绔湴鍧€鍙屾ā寮忥紝閬垮厤鏈厤缃椂涓嶅彲鐢?
+- 语音朗读切换为腾讯云语音合成，支持国内环境直连与长文本任务
+- 补充腾讯云 TTS 运行配置说明，便于在云托管或本地环境中启用朗读
+- 雨声白噪音支持项目内兜底音频与云端地址双模式，避免未配置时不可用
 
 ### v0.1.2 (2026-04-21)
-- 鐧诲綍鍚庣粺涓€鐢熸垚鍥哄畾鏄电О `鍚洦瀹?+ 鍥涗綅闅忔満鏁癭锛岀‘淇濈敤鎴峰睍绀哄悕绉伴鏍间竴鑷?
-- 鐢ㄦ埛澶村儚缁熶竴浣跨敤椤圭洰鍐呭浐瀹氬浘鏍囷紝涓嶅啀渚濊禆澶栭儴寰俊澶村儚
-- 鐧诲綍鎬佹敼涓?token 鎸佷箙鍖栵紝token 鏈繃鏈熸椂鍙洿鎺ユ仮澶嶇櫥褰曪紝涓嶅繀閲嶅鎺堟潈
-- 杩涗竴姝ヤ紭鍖栤€滄垜鐨勨€濋〉淇℃伅灞曠ず锛屽幓闄ゅ啑浣欑殑缁戝畾鎻愮ず
+- 登录后统一生成固定昵称 `听雨客 + 四位随机数`，确保用户展示名称风格一致
+- 用户头像统一使用项目内固定图标，不再依赖外部微信头像
+- 登录态改为 token 持久化，token 未过期时可直接恢复登录，不必重复授权
+- 进一步优化“我的”页信息展示，去除冗余的绑定提示
 
 ### v0.1.1 (2026-04-21)
-- 鏂板闆ㄥ０鐧藉櫔闊虫矇娴搁槄璇绘ā寮忥紝璇︽儏椤垫敮鎸佹獝涓嬮洦鑳屾櫙闊充笌澶氶煶婧愬垏鎹?
-- 鏂板浠婃棩璇楀巻鎵撳崱绛撅紝棣栭〉鏀寔鍐滃巻璇楀巻灞曠ず涓庡崱鐗囧垎浜?
-- 鏂板璇楄垷婕傛祦涓庡尶鍚嶅洖澶嶏紝鏀寔鏀惰棌銆佸洖澶嶃€佹渶杩戞敹鍒版憳瑕佷笌婕傛祦鐘舵€佸睍绀?
-- 鏂板鎽樺綍鏈笌闃呰瓒宠抗锛屾敮鎸佸彞瀛愭憳褰曘€佺浜烘壒娉ㄣ€佽瘲鑸熼噷绋嬬粺璁?
-- 鏂板姣忔棩闆ㄤ笣璁㈤槄鎺ㄩ€侊紝鎺ュ叆璁㈤槄妯℃澘涓庡悗绔畾鏃跺彂閫侀摼璺?
-- 浼樺寲棣栭〉灏侀潰缁撴瀯涓庤瘲鑸熼〉瑙嗚灞傜骇锛屾彁鍗囦骇鍝佸畬鏁村害
+- 新增雨声白噪音沉浸阅读模式，详情页支持檐下雨背景音与多音源切换
+- 新增今日诗历打卡签，首页支持农历诗历展示与卡片分享
+- 新增诗舟漂流与匿名回复，支持收藏、回复、最近收到摘要与漂流状态展示
+- 新增摘录本与阅读足迹，支持句子摘录、私人批注、诗舟里程统计
+- 新增每日雨丝订阅推送，接入订阅模板与后端定时发送链路
+- 优化首页封面结构与诗舟页视觉层级，提升产品完整度
 
 ### v0.0.9 (2026-04-21)
-- 鏂板鏀惰棌鍔熻兘锛屾敮鎸佸叏鏂囨敹钘忎笌鍙ュ瓙鏀惰棌
-- 璇︽儏椤垫柊澧炲叏鏂囨敹钘忔寜閽紝澶嶅埗鍘熸枃寮圭獥鏂板鍙ュ瓙鏀惰棌鎸夐挳
-- 鈥滄垜鐨勨€濋〉鏂板鏀惰棌鍏ュ彛锛岃繘鍏ュ悗鍙粺涓€鏌ョ湅涓庡彇娑堟敹钘?
-- 鍚庣鏂板鏀惰棌鎺ュ彛銆佹敹钘忕姸鎬佹煡璇㈡帴鍙ｅ拰鏀惰棌鏁版嵁妯″瀷
-- 鏀惰棌琛ㄦ敮鎸佹寜 `FULL` / `SENTENCE` 鍖哄垎鏀惰棌绮掑害锛屾棫搴撳彲鎵ц浠撳簱鍐呯殑杩佺Щ SQL
+- 新增收藏功能，支持全文收藏与句子收藏
+- 详情页新增全文收藏按钮，复制原文弹窗新增句子收藏按钮
+- “我的”页新增收藏入口，进入后可统一查看与取消收藏
+- 后端新增收藏接口、收藏状态查询接口和收藏数据模型
+- 收藏表支持按 `FULL` / `SENTENCE` 区分收藏粒度，旧库可执行仓库内的迁移 SQL
 
 ### v0.0.8 (2026-04-21)
-- 淇鈥滄垜鐨勨€濋〉鐧诲綍娴佺▼鏈纭媺璧峰皬绋嬪簭澶村儚鏄电О鑾峰彇鐨勯棶棰?
-- 鐧诲綍鍏ュ彛鏀逛负鏄惧紡灞曠ず澶村儚鏄电О琛ㄥ崟锛屼娇鐢?`chooseAvatar` 涓庢樀绉拌緭鍏ヨ兘鍔涘畬鎴愯祫鏂欒幏鍙?
-- 鏀寔宸茬櫥褰曠敤鎴烽噸鏂拌幏鍙栧苟鏇存柊澶村儚鏄电О锛屾彁浜ゅ悗鍚屾瑕嗙洊鏈湴缂撳瓨涓庡悗绔敤鎴疯祫鏂?
+- 修复“我的”页登录流程未正确拉起小程序头像昵称获取的问题
+- 登录入口改为显式展示头像昵称表单，使用 `chooseAvatar` 与昵称输入能力完成资料获取
+- 支持已登录用户重新获取并更新头像昵称，提交后同步覆盖本地缓存与后端用户资料
 
 ### v0.0.7 (2026-04-17)
-- 棣栭〉棣栧睆鏀逛负浼樺厛灞曠ず鈥滄瘡鏃ユ帹鑽愨€濓紝骞跺鍔犫€滀粖鏃ユ帹鑽?/ 闅忔満璇楄瘝鈥濇潵婧愭爣璇?
-- 浼樺寲鈥滄崲涓€棣栤€濋殢鏈洪€昏緫锛氬墠绔褰曟渶杩戞祻瑙堣瘲璇嶏紝鍚庣鎸夋帓闄ゅ垪琛ㄩ殢鏈鸿繑鍥烇紝鍑忓皯灏戦噺璇楄瘝鏉ュ洖鍒囨崲鐨勯棶棰?
-- 闅忔満璇楄瘝鎺ュ彛澧炲姞鎺掗櫎鍙傛暟涓庨槻缂撳瓨鏃堕棿鎴筹紝璇锋眰缁撴灉鏇寸ǔ瀹?
-- 椤圭洰鍚姩鍚庣殑鑴忔暟鎹竻鐞嗘敼涓哄紓姝ュ悗鍙板垎椤垫壂鎻忥紝涓嶉樆濉炲惎鍔紝涓嶄竴娆℃€у叏琛ㄨ浇鍏ュ唴瀛?
-- 鍚庡彴娓呯悊浼氬垹闄ょ┖鍐呭銆佺┖鏍囬銆佺┖浣滆€呫€佺┖鏈濅唬鍙婃槑鏄句贡鐮佽瘲璇嶏紝骞跺悓姝ユ竻鐞嗗搴旀瘡鏃ユ帹鑽愬叧鑱旇褰?
+- 首页首屏改为优先展示“每日推荐”，并增加“今日推荐 / 随机诗词”来源标识
+- 优化“换一首”随机逻辑：前端记录最近浏览诗词，后端按排除列表随机返回，减少少量诗词来回切换的问题
+- 随机诗词接口增加排除参数与防缓存时间戳，请求结果更稳定
+- 项目启动后的脏数据清理改为异步后台分页扫描，不阻塞启动，不一次性全表载入内存
+- 后台清理会删除空内容、空标题、空作者、空朝代及明显乱码诗词，并同步清理对应每日推荐关联记录
 
 ### v0.0.6 (2026-04-17)
-- 鏂板"鎴戠殑"椤电锛圱abBar 绗笁椤癸級锛屽惈鐢ㄦ埛淇℃伅鍗＄墖
-- 寰俊鎺堟潈鐧诲綍锛歝hooseAvatar 閫夊ご鍍?+ nickname 杈撳叆鏄电О
-- 澶村儚涓婁紶浜戝瓨鍌紝鐢ㄦ埛鏁版嵁鎸佷箙鍖栧埌 MySQL users 琛?
-- 鏀寔淇敼璧勬枡锛堝鐢ㄧ櫥褰曞脊绐楅濉凡鏈変俊鎭級
-- 鏀寔閫€鍑虹櫥褰曞苟閲嶆柊缁戝畾
-- 鍚庣鏂板 UserController / UserService / UserMapper 鐢ㄦ埛浣撶郴
+- 新增"我的"页签（TabBar 第三项），含用户信息卡片
+- 微信授权登录：chooseAvatar 选头像 + nickname 输入昵称
+- 头像上传云存储，用户数据持久化到 MySQL users 表
+- 支持修改资料（复用登录弹窗预填已有信息）
+- 支持退出登录并重新绑定
+- 后端新增 UserController / UserService / UserMapper 用户体系
 
 ### v0.0.5 (2026-04-17)
-- 璇楄瘝榛樿绠€浣撳睍绀猴紝鏂板绻佺畝杞崲宸ュ叿锛?500+ 瀛楃鏄犲皠锛?
-- 棣栭〉/璇︽儏椤垫坊鍔犵箒/绠€涓€閿垏鎹㈡寜閽?
-- 鍙戠幇椤?鍒嗕韩椤靛悓姝ヨ浆鎹紝璺ㄩ〉鍋忓ソ鑷姩鍚屾
-- 鍋忓ソ鎸佷箙鍖栧埌 localStorage锛岄噸鍚嚜鍔ㄦ仮澶?
+- 诗词默认简体展示，新增繁简转换工具（2500+ 字符映射）
+- 首页/详情页添加繁/简一键切换按钮
+- 发现页/分享页同步转换，跨页偏好自动同步
+- 偏好持久化到 localStorage，重启自动恢复
 
 ### v0.0.4 (2026-04-16)
-- 鐖櫕鎺ュ叆 ChinesePoetryLibrary 鏁版嵁婧愶紝鑷姩瀵煎叆璇戞枃/璧忔瀽/娉ㄩ噴
-- 璇︽儏椤垫敞閲?Tab 鏀寔璇嶄箟鍒楄〃鏍煎紡鍖栧睍绀?
-- 鍗＄墖鍒嗕韩椤垫牴鎹瘲璇嶈鏁板姩鎬佽绠?Canvas 楂樺害锛屼慨澶嶉暱璇楁孩鍑?
-- 瀵煎叆闄愬埗浠?50/婧?鎻愬崌鑷?500/婧愶紝瀵屽寲瀵煎叆 2000/娆?
-- 淇浣滆€呮暟鎹矾寰?404锛堢己灏?`鍏ㄥ攼璇?` 鐩綍鍓嶇紑锛?
-- 鍞愯瘲/瀹嬭瘲/瀹嬭瘝鏀逛负鍔ㄦ€侀亶鍘嗗叏閮ㄦ枃浠?
+- 爬虫接入 ChinesePoetryLibrary 数据源，自动导入译文/赏析/注释
+- 详情页注释 Tab 支持词义列表格式化展示
+- 卡片分享页根据诗词行数动态计算 Canvas 高度，修复长诗溢出
+- 导入限制从 50/源 提升至 500/源，富化导入 2000/次
+- 修复作者数据路径 404（缺少 `全唐诗/` 目录前缀）
+- 唐诗/宋诗/宋词改为动态遍历全部文件
 
 ### v0.0.3 (2026-04-16)
-- 鏂板浣滆€呬粙缁嶏紙璇︽儏椤靛彲灞曞紑/鏀惰捣锛?
-- 鏂板鏍囩鐐瑰嚮璺宠浆锛堢偣鍑绘爣绛剧瓫閫夊悓鏍囩璇楄瘝锛?
-- 鏂板闀挎寜鏄剧ず鎷奸煶锛堝惈澹拌皟锛? 澶嶅埗鍘熸枃
-- 鏂板璇楄瘝鐖櫕瀹氭椂浠诲姟锛堟瘡鍛ㄤ竴鍑屾櫒鑷姩瀵煎叆锛?
-- 鏂板鍚姩鏃跺紓姝ュ鍏ワ紙@Async + ApplicationReadyEvent锛?
-- 鏂板搴曢儴瀵艰埅鏍忓浘鏍囷紙棣栭〉/鍙戠幇锛?
+- 新增作者介绍（详情页可展开/收起）
+- 新增标签点击跳转（点击标签筛选同标签诗词）
+- 新增长按显示拼音（含声调）+ 复制原文
+- 新增诗词爬虫定时任务（每周一凌晨自动导入）
+- 新增启动时异步导入（@Async + ApplicationReadyEvent）
+- 新增底部导航栏图标（首页/发现）
 - 
 ### v0.0.2 (2026-04-16)
-- 鏂板鍗＄墖鍒嗕韩椤碉紙5娆炬ā鏉匡紝Canvas 2D 缁樺埗锛?
-- 鏂板鍙戠幇椤碉紙鏈濅唬绛涢€夈€佹爣绛剧瓫閫夈€佹悳绱€佸垎椤碉級
-- 鏂板浣滆€?鏍囩/鍏冩暟鎹?鎷奸煶 API
+- 新增卡片分享页（5款模板，Canvas 2D 绘制）
+- 新增发现页（朝代筛选、标签筛选、搜索、分页）
+- 新增作者/标签/元数据/拼音 API
 
 ### v0.0.1 (2026-04-15)
-- 椤圭洰鍒濆鍖栵紝鍩轰簬寰俊浜戞墭绠?Spring Boot 妯℃澘
-- 瀹炵幇璇楄瘝鏁版嵁妯″瀷锛圥oem/Author/Tag/DailyPoem锛?
-- 瀹炵幇璇楄瘝 API锛堟瘡鏃ユ帹鑽?闅忔満/璇︽儏/鍒楄〃/鎼滅储锛?
-- 灏忕▼搴忛椤佃瘲璇嶅崱鐗囧睍绀?
-- 浜戝嚱鏁拌皟鐢ㄦ敼涓?HTTP 浜戞墭绠¤皟鐢紙callContainer锛?
-- 鏁版嵁搴撹繛鎺ュ閿欙紙HikariCP 鍒濆鍖栧け璐ヤ笉闃诲鍚姩锛?
-- 淇 MyBatis Mapper 娉ㄨВ涓?XML 鍙岄噸瀹氫箟鍐茬獊
+- 项目初始化，基于微信云托管 Spring Boot 模板
+- 实现诗词数据模型（Poem/Author/Tag/DailyPoem）
+- 实现诗词 API（每日推荐/随机/详情/列表/搜索）
+- 小程序首页诗词卡片展示
+- 云函数调用改为 HTTP 云托管调用（callContainer）
+- 数据库连接容错（HikariCP 初始化失败不阻塞启动）
+- 修复 MyBatis Mapper 注解与 XML 双重定义冲突
