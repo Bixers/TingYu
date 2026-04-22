@@ -49,7 +49,7 @@ public class DailyRainPushService {
     private volatile String accessToken;
     private volatile long accessTokenExpireAt;
 
-    @Scheduled(cron = "0 0 20 * * ?")
+    @Scheduled(cron = "0 0 10 * * ?", zone = "Asia/Shanghai")
     public void pushDailyRain() {
         if (!isConfigured()) {
             System.out.println("每日雨丝推送未配置 appid/secret/template-id，跳过执行");

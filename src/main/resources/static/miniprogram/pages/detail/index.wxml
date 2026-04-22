@@ -106,7 +106,7 @@
   </view>
 
   <view class="pinyin-overlay" wx:if="{{showPinyinModal}}" catchtap="closePinyinModal">
-    <view class="pinyin-modal" catchtap="">
+    <view class="pinyin-modal" catchtap="noop">
       <view class="pinyin-loading" wx:if="{{pinyinLoading}}">
         <text>正在获取拼音...</text>
       </view>
@@ -144,7 +144,7 @@
   </view>
 
   <view class="excerpt-overlay" wx:if="{{showExcerptModal}}" catchtap="closeExcerptModal">
-    <view class="excerpt-modal" catchtap="">
+    <view class="excerpt-modal" catchtap="noop">
       <text class="excerpt-title">摘录本</text>
       <text class="excerpt-sentence">{{longPressText}}</text>
       <textarea
@@ -166,7 +166,7 @@
   </view>
 
   <view class="excerpt-overlay" wx:if="{{showRhymeModal}}" catchtap="closePinyinModal">
-    <view class="excerpt-modal" catchtap="">
+    <view class="excerpt-modal" catchtap="noop">
       <text class="excerpt-title">韵部</text>
       <text class="excerpt-sentence">{{rhymeData.targetChar}} · {{rhymeData.pinyin}}</text>
       <view class="rhyme-card" wx:if="{{rhymeLoading}}">

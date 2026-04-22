@@ -33,6 +33,7 @@ Page({
     favoriteLoading: false,
     showExcerptModal: false,
     excerptNote: '',
+    excerptContext: null,
     excerptSaving: false,
     reading: false,
     readingLoading: false,
@@ -310,9 +311,15 @@ Page({
       wx.showToast({ title: '请长按句子后摘录', icon: 'none' })
       return
     }
+    const excerptContext = {
+      poemId: this.data.poem && this.data.poem.id ? this.data.poem.id : '',
+      sentenceIndex: this.data.longPressIndex,
+      sentenceText: this.data.longPressText || ''
+    }
     this.setData({
       showExcerptModal: true,
-      excerptNote: ''
+      excerptNote: '',
+      excerptContext: excerptContext
     })
   },
 
@@ -320,7 +327,8 @@ Page({
     if (this.data.excerptSaving) return
     this.setData({
       showExcerptModal: false,
-      excerptNote: ''
+      excerptNote: '',
+      excerptContext: null
     })
   },
 
@@ -337,13 +345,14 @@ Page({
       return
     }
     if (this.data.excerptSaving) return
-    if (this.data.longPressType !== 'sentence') {
+    const excerptContext = this.data.excerptContext
+    if (!excerptContext || excerptContext.poemId !== poem.id) {
       wx.showToast({ title: '请长按句子后摘录', icon: 'none' })
       return
     }
 
-    const sentenceIndex = this.data.longPressIndex
-    const sentenceText = this.data.longPressText || ''
+    const sentenceIndex = excerptContext.sentenceIndex
+    const sentenceText = excerptContext.sentenceText || ''
     if (sentenceIndex === undefined || sentenceIndex === null || sentenceIndex < 0 || !sentenceText) {
       wx.showToast({ title: '未获取到句子', icon: 'none' })
       return
@@ -359,7 +368,8 @@ Page({
       usage.recordExcerpt()
       this.setData({
         showExcerptModal: false,
-        excerptNote: ''
+        excerptNote: '',
+        excerptContext: null
       })
       this.loadExcerptHighlights(poem.id)
       wx.showToast({ title: '已加入摘录本', icon: 'success' })
@@ -747,6 +757,8 @@ Page({
       longPressType: ''
     })
   },
+
+  noop() {},
 
   goToShare() {
     const poem = this.data.poem
