@@ -1,4 +1,4 @@
-<view class="boat-page">
+﻿<view class="boat-page">
   <view class="login-card card" wx:if="{{!isLoggedIn}}">
     <text class="section-title">先完成登录</text>
     <text class="empty-tip">诗舟需要一个身份，才能记住你的投递、收藏与回复。</text>
@@ -11,7 +11,7 @@
 
   <view class="header">
     <text class="title">诗舟漂流</text>
-    <text class="subtitle">匿名、无关注、无评论，把一句诗放进舟里，再从江面收取一枚只言片语。</text>
+    <text class="subtitle">匿名、无关注、无评论，把一句诗放进舟里，再从江面收取一枚只言片语。长按诗笺可直接复制。</text>
   </view>
 
   <view class="compose-card card">
@@ -44,7 +44,7 @@
       <text class="section-title">今日偶遇</text>
       <text class="small-link" bindtap="collectCurrentMessage">{{collecting ? '收藏中...' : '收藏'}}</text>
     </view>
-    <view class="received-preview" bindtap="openThread" data-id="{{receivedMessage.id}}">
+    <view class="received-preview" bindtap="openThread" bindlongpress="copyMessage" data-id="{{receivedMessage.id}}">
       <text class="message-drift">{{receivedMessage.driftLabel}}</text>
       <text class="received-content">{{receivedMessage.content}}</text>
       <text class="received-signature">—— {{receivedMessage.signature}}</text>
@@ -66,7 +66,7 @@
   <view class="summary-card card" wx:if="{{recentReceivedMessages.length > 0}}">
     <text class="section-title">最近收到的 3 枚诗笺</text>
     <view class="summary-list">
-      <view class="summary-item" wx:for="{{recentReceivedMessages}}" wx:key="id" bindtap="openThread" data-id="{{item.id}}">
+      <view class="summary-item summary-item-{{index}}" wx:for="{{recentReceivedMessages}}" wx:for-index="index" wx:key="id" bindtap="openThread" bindlongpress="copyMessage" data-id="{{item.id}}">
         <view class="summary-topline">
           <text class="message-drift">{{item.driftLabel}}</text>
           <text class="summary-time">{{item.createdAtText}}</text>
@@ -79,20 +79,26 @@
 
   <view class="tabs card">
     <view class="tab-item {{currentTab === 'pool' ? 'active' : ''}}" data-tab="pool" bindtap="switchTab">
-      <text>舟池</text>
+      <text class="tab-label">舟池</text>
+      <text class="tab-note">顺流待收</text>
+      <text class="tab-count" wx:if="{{poolMessages.length > 0}}">{{poolMessages.length}}</text>
     </view>
     <view class="tab-item {{currentTab === 'collected' ? 'active' : ''}}" data-tab="collected" bindtap="switchTab">
-      <text>收藏</text>
+      <text class="tab-label">收藏</text>
+      <text class="tab-note">已靠岸</text>
+      <text class="tab-count" wx:if="{{collectedMessages.length > 0}}">{{collectedMessages.length}}</text>
     </view>
     <view class="tab-item {{currentTab === 'mine' ? 'active' : ''}}" data-tab="mine" bindtap="switchTab">
-      <text>我的</text>
+      <text class="tab-label">我的</text>
+      <text class="tab-note">已放入舟中</text>
+      <text class="tab-count" wx:if="{{mineMessages.length > 0}}">{{mineMessages.length}}</text>
     </view>
   </view>
 
   <view class="list-card card" wx:if="{{currentTab === 'pool'}}">
     <text class="section-title">舟池诗笺</text>
     <view class="message-list" wx:if="{{poolMessages.length > 0}}">
-      <view class="message-item" wx:for="{{poolMessages}}" wx:key="id" data-id="{{item.id}}" bindtap="openThread">
+      <view class="message-item" wx:for="{{poolMessages}}" wx:key="id" data-id="{{item.id}}" bindtap="openThread" bindlongpress="copyMessage">
         <text class="message-drift">{{item.driftLabel}}</text>
         <text class="message-content">{{item.content}}</text>
         <text class="message-signature">—— {{item.signature}}</text>
@@ -108,7 +114,7 @@
   <view class="list-card card" wx:if="{{currentTab === 'collected'}}">
     <text class="section-title">我的收藏</text>
     <view class="message-list" wx:if="{{collectedMessages.length > 0}}">
-      <view class="message-item" wx:for="{{collectedMessages}}" wx:key="id" data-id="{{item.id}}" bindtap="openThread">
+      <view class="message-item" wx:for="{{collectedMessages}}" wx:key="id" data-id="{{item.id}}" bindtap="openThread" bindlongpress="copyMessage">
         <text class="message-drift">{{item.driftLabel}}</text>
         <text class="message-content">{{item.content}}</text>
         <text class="message-signature">—— {{item.signature}}</text>
@@ -123,7 +129,7 @@
   <view class="list-card card" wx:if="{{currentTab === 'mine'}}">
     <text class="section-title">我的投递</text>
     <view class="message-list" wx:if="{{mineMessages.length > 0}}">
-      <view class="message-item" wx:for="{{mineMessages}}" wx:key="id" data-id="{{item.id}}" bindtap="openThread">
+      <view class="message-item" wx:for="{{mineMessages}}" wx:key="id" data-id="{{item.id}}" bindtap="openThread" bindlongpress="copyMessage">
         <text class="message-drift">{{item.driftLabel}}</text>
         <text class="message-content">{{item.content}}</text>
         <text class="message-signature">—— {{item.signature}}</text>
@@ -142,7 +148,7 @@
         <text class="section-title">舟中来信</text>
         <text class="small-link" bindtap="closeThread">关闭</text>
       </view>
-      <view class="thread-root" wx:if="{{selectedThread.root}}">
+      <view class="thread-root" wx:if="{{selectedThread.root}}" bindlongpress="copyMessage" data-id="{{selectedThread.root.id}}">
         <text class="message-drift">{{selectedThread.root.driftLabel}}</text>
         <text class="thread-content">{{selectedThread.root.content}}</text>
         <text class="thread-signature">—— {{selectedThread.root.signature}}</text>
@@ -154,18 +160,18 @@
           <view class="outline-btn" bindtap="copyMessage">
             <text>复制</text>
           </view>
-          <view class="outline-btn" bindtap="collectCurrentMessage">
-            <text>{{collecting ? '收藏中...' : '收藏'}}</text>
+          <view class="outline-btn {{collectedThreadIds.indexOf(selectedThread.root.id) !== -1 ? 'outline-btn-disabled' : ''}}" bindtap="collectCurrentMessage">
+            <text>{{collectedThreadIds.indexOf(selectedThread.root.id) !== -1 ? '已收藏' : (collecting ? '收藏中...' : '收藏')}}</text>
           </view>
-          <view class="outline-btn" bindtap="openReplyModal">
-            <text>回复一次</text>
+          <view class="outline-btn {{repliedThreadIds.indexOf(selectedThread.root.id) !== -1 ? 'outline-btn-disabled' : ''}}" bindtap="openReplyModal">
+            <text>{{repliedThreadIds.indexOf(selectedThread.root.id) !== -1 ? '已回复' : '回复一次'}}</text>
           </view>
         </view>
       </view>
 
       <view class="reply-list" wx:if="{{selectedThread.replies.length > 0}}">
         <text class="reply-title">回复</text>
-        <view class="reply-item" wx:for="{{selectedThread.replies}}" wx:key="id">
+        <view class="reply-item" wx:for="{{selectedThread.replies}}" wx:key="id" bindlongpress="copyMessage" data-id="{{item.id}}">
           <text class="message-drift">{{item.driftLabel}}</text>
           <text class="reply-content">{{item.content}}</text>
           <text class="reply-signature">—— {{item.signature}}</text>

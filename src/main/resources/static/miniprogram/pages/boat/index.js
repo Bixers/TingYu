@@ -24,6 +24,20 @@ function labelList(list, driftLabel) {
   return (list || []).map((item) => normalizeMessage(item, driftLabel))
 }
 
+function findMessageInList(list, id) {
+  if (!id || !Array.isArray(list)) return null
+  return list.find((item) => String(item.id) === String(id)) || null
+}
+
+function loadIdSet(key) {
+  const value = wx.getStorageSync(key)
+  return Array.isArray(value) ? value.map((item) => String(item)) : []
+}
+
+function saveIdSet(key, list) {
+  wx.setStorageSync(key, Array.isArray(list) ? list.map((item) => String(item)) : [])
+}
+
 Page({
   data: {
     currentTab: 'pool',
@@ -37,6 +51,9 @@ Page({
     recentReceivedMessages: [],
     receivedMessage: null,
     selectedThread: null,
+    selectedThreadId: null,
+    collectedThreadIds: [],
+    repliedThreadIds: [],
     showReplyModal: false,
     replyTarget: null,
     loadingPool: false,
@@ -50,15 +67,38 @@ Page({
   },
 
   onLoad() {
+    this.restoreLocalThreadState()
     this.syncAuthState()
     this.loadCurrentTab(true)
     this.loadRecentReceivedMessages(true)
   },
 
   onShow() {
+    this.restoreLocalThreadState()
     this.syncAuthState()
     this.loadCurrentTab(true)
     this.loadRecentReceivedMessages(true)
+  },
+
+  restoreLocalThreadState() {
+    this.setData({
+      collectedThreadIds: loadIdSet('boatCollectedThreadIds'),
+      repliedThreadIds: loadIdSet('boatRepliedThreadIds')
+    })
+  },
+
+  saveCollectedThreadId(id) {
+    if (!id) return
+    const collectedThreadIds = Array.from(new Set([String(id)].concat(this.data.collectedThreadIds || [])))
+    this.setData({ collectedThreadIds })
+    saveIdSet('boatCollectedThreadIds', collectedThreadIds)
+  },
+
+  saveRepliedThreadId(id) {
+    if (!id) return
+    const repliedThreadIds = Array.from(new Set([String(id)].concat(this.data.repliedThreadIds || [])))
+    this.setData({ repliedThreadIds })
+    saveIdSet('boatRepliedThreadIds', repliedThreadIds)
   },
 
   syncAuthState() {
@@ -76,7 +116,8 @@ Page({
         collectedMessages: [],
         recentReceivedMessages: [],
         receivedMessage: null,
-        selectedThread: null
+        selectedThread: null,
+        selectedThreadId: null
       })
       return Promise.resolve()
     }
@@ -179,6 +220,18 @@ Page({
     })
   },
 
+  findMessageById(id) {
+    return (
+      findMessageInList(this.data.recentReceivedMessages, id) ||
+      findMessageInList(this.data.poolMessages, id) ||
+      findMessageInList(this.data.mineMessages, id) ||
+      findMessageInList(this.data.collectedMessages, id) ||
+      findMessageInList((this.data.selectedThread && this.data.selectedThread.replies) || [], id) ||
+      (this.data.selectedThread && this.data.selectedThread.root && String(this.data.selectedThread.root.id) === String(id) ? this.data.selectedThread.root : null) ||
+      (this.data.receivedMessage && String(this.data.receivedMessage.id) === String(id) ? this.data.receivedMessage : null)
+    )
+  },
+
   refreshCurrent() {
     this.loadCurrentTab(true)
     this.loadRecentReceivedMessages(true)
@@ -231,6 +284,9 @@ Page({
   openThread(e) {
     const id = e.currentTarget.dataset.id
     if (!id) return
+    if (this.data.selectedThreadId && String(this.data.selectedThreadId) === String(id) && this.data.selectedThread && this.data.selectedThread.root) {
+      return
+    }
     api.getBoatThread(id).then((result) => {
       const root = normalizeMessage(result && result.root, '顺流而来')
       const replies = labelList(result && result.replies, '回声')
@@ -238,7 +294,8 @@ Page({
         selectedThread: {
           root: root,
           replies: replies
-        }
+        },
+        selectedThreadId: id
       })
     }).catch((err) => {
       wx.showToast({ title: (err && err.message) || '加载详情失败', icon: 'none' })
@@ -246,12 +303,16 @@ Page({
   },
 
   closeThread() {
-    this.setData({ selectedThread: null })
+    this.setData({ selectedThread: null, selectedThreadId: null })
   },
 
   collectCurrentMessage() {
     const target = this.resolveCurrentMessage()
     if (!target || this.data.collecting) return
+    if ((this.data.collectedThreadIds || []).includes(String(target.id))) {
+      wx.showToast({ title: '这枚诗笺已收藏', icon: 'none' })
+      return
+    }
     this.setData({ collecting: true })
     api.collectBoatMessage(target.id).then((message) => {
       wx.showToast({ title: '已收藏到诗舟', icon: 'success' })
@@ -259,6 +320,7 @@ Page({
       this.setData({
         collectedMessages: [normalized].concat(this.data.collectedMessages || [])
       })
+      this.saveCollectedThreadId(target.id)
     }).catch((err) => {
       wx.showToast({ title: (err && err.message) || '收藏失败', icon: 'none' })
     }).finally(() => {
@@ -269,6 +331,10 @@ Page({
   openReplyModal() {
     const target = this.resolveCurrentMessage()
     if (!target) return
+    if ((this.data.repliedThreadIds || []).includes(String(target.id))) {
+      wx.showToast({ title: '这枚诗笺已回复过', icon: 'none' })
+      return
+    }
     this.setData({
       showReplyModal: true,
       replyTarget: target,
@@ -292,6 +358,10 @@ Page({
     const replyText = (this.data.replyText || '').trim()
     const signature = (this.data.replySignature || '').trim() || '听雨客'
     if (!target || !target.id) return
+    if ((this.data.repliedThreadIds || []).includes(String(target.id))) {
+      wx.showToast({ title: '这枚诗笺已回复过', icon: 'none' })
+      return
+    }
     if (!replyText) {
       wx.showToast({ title: '先写一句回复', icon: 'none' })
       return
@@ -311,11 +381,13 @@ Page({
           root: root,
           replies: replies
         },
+        selectedThreadId: target.id,
         showReplyModal: false,
         replyTarget: null,
         replyText: '',
         replySignature: '听雨客'
       })
+      this.saveRepliedThreadId(target.id)
       this.loadMineMessages(true)
       this.loadPoolMessages(true)
       this.loadRecentReceivedMessages(true)
@@ -327,7 +399,8 @@ Page({
   },
 
   copyMessage(e) {
-    const message = (e && e.currentTarget && e.currentTarget.dataset && e.currentTarget.dataset.message) || this.resolveCurrentMessage()
+    const id = e && e.currentTarget && e.currentTarget.dataset && e.currentTarget.dataset.id
+    const message = this.findMessageById(id) || this.resolveCurrentMessage()
     if (!message) return
     wx.setClipboardData({
       data: `${message.content}\n—— ${message.signature || '听雨客'}`

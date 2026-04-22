@@ -140,6 +140,11 @@ mvn spring-boot:run
 
 ## 更新记录
 
+### v0.1.5 (2026-04-22)
+- 小程序启动时关闭 `traceUser`，避免云初始化阶段拉起额外请求导致启动失败
+- API 请求显式传入 `config.env` / `config.service`，提升云托管调用稳定性
+- 详情页雨声改为底部常驻入口，更容易发现并一键进入沉浸阅读
+
 ### v0.1.4 (2026-04-22)
 - 语音朗读改为接入腾讯云官方 Java SDK，修复自定义签名导致的 `AuthFailure.SignatureFailure`
 - 每日雨丝推送时间调整为每天上午 `10:00`，并固定按 `Asia/Shanghai` 时区执行

@@ -1,4 +1,4 @@
-<view class="detail-page {{immersiveMode ? 'immersive' : ''}}">
+﻿<view class="detail-page {{immersiveMode ? 'immersive' : ''}}">
   <view class="loading" wx:if="{{loading}}">
     <text>加载中...</text>
   </view>
@@ -69,6 +69,9 @@
   <view class="bottom-bar" wx:if="{{poem && !immersiveMode}}">
     <view class="bottom-btn voice-btn {{reading ? 'active' : ''}} {{!ttsAvailable ? 'disabled' : ''}}" bindtap="toggleReading">
       <text class="btn-label">{{reading ? '停止朗读' : (readingLoading ? '生成中...' : (ttsAvailable ? '语音朗读' : '朗读暂不可用'))}}</text>
+    </view>
+    <view class="bottom-btn rain-btn {{rainEnabled ? 'active' : ''}}" bindtap="toggleRain">
+      <text class="btn-label">{{rainEnabled ? (rainPlaying ? '收起雨声' : '雨声开启') : '檐下雨'}}</text>
     </view>
     <view class="bottom-btn favorite-btn {{isFavoriteFull ? 'active' : ''}}" bindtap="toggleFullFavorite">
       <text class="btn-label">{{isFavoriteFull ? '已收藏全文' : '收藏全文'}}</text>

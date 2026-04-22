@@ -1,4 +1,4 @@
-<view class="share-page">
+﻿<view class="share-page">
   <view class="hero-section">
     <text class="page-title">{{calendarMode ? '今日诗历' : '生成卡片'}}</text>
     <text class="page-subtitle" wx:if="{{!calendarMode}}">为当前诗词挑选一张更合适的卡面，让分享更像一封信。</text>

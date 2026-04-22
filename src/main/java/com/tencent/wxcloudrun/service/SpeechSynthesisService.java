@@ -16,6 +16,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestClientException;
 import org.springframework.web.client.RestTemplate;
+import org.springframework.beans.factory.annotation.Value;
 
 import java.util.Base64;
 import java.util.UUID;
@@ -30,30 +31,58 @@ public class SpeechSynthesisService {
 
     private final RestTemplate restTemplate = new RestTemplate();
 
+    @Value("${tencent.tts.app-id:}")
+    private String appId;
+
+    @Value("${tencent.tts.secret-id:}")
+    private String secretId;
+
+    @Value("${tencent.tts.secret-key:}")
+    private String secretKey;
+
+    @Value("${tencent.tts.secret-token:}")
+    private String secretToken;
+
+    @Value("${tencent.tts.region:ap-guangzhou}")
+    private String region;
+
+    @Value("${tencent.tts.voice:101001}")
+    private String defaultVoice;
+
+    @Value("${tencent.tts.speed:0}")
+    private String defaultSpeed;
+
+    @Value("${tencent.tts.volume:30}")
+    private String defaultVolume;
+
     public TtsResult synthesize(String text, String voice, String outputFormat) {
         String cleanText = normalizeText(text);
         if (cleanText.isEmpty()) {
             throw new IllegalArgumentException("文本不能为空");
         }
 
-        requireEnv("TENCENT_TTS_APP_ID");
-        String secretId = requireEnv("TENCENT_TTS_SECRET_ID");
-        String secretKey = requireEnv("TENCENT_TTS_SECRET_KEY");
+        String actualAppId = normalizeRequired(appId, "TENCENT_TTS_APP_ID");
+        String actualSecretId = normalizeRequired(secretId, "TENCENT_TTS_SECRET_ID");
+        String actualSecretKey = normalizeRequired(secretKey, "TENCENT_TTS_SECRET_KEY");
+        String actualToken = normalizeOptional(secretToken);
         String actualVoice = normalizeVoice(voice);
         String actualFormat = normalizeFormat(outputFormat);
-        Float speed = normalizeSpeed(System.getenv("TENCENT_TTS_SPEED"));
-        Float volume = normalizeVolume(System.getenv("TENCENT_TTS_VOLUME"));
-        String region = normalizeRegion(System.getenv("TENCENT_TTS_REGION"));
+        Float speed = normalizeSpeed(defaultSpeed);
+        Float volume = normalizeVolume(defaultVolume);
+        String actualRegion = normalizeRegion(region);
 
-        TtsClient client = buildClient(secretId, secretKey, region);
+        TtsClient client = buildClient(actualSecretId, actualSecretKey, actualToken, actualRegion);
         if (cleanText.length() <= 150) {
-            return synthesizeShortText(client, cleanText, actualVoice, actualFormat, speed, volume);
+            return synthesizeShortText(client, actualAppId, cleanText, actualVoice, actualFormat, speed, volume);
         }
-        return synthesizeLongText(client, cleanText, actualVoice, actualFormat, speed, volume);
+        return synthesizeLongText(client, actualAppId, cleanText, actualVoice, actualFormat, speed, volume);
     }
 
-    private TtsClient buildClient(String secretId, String secretKey, String region) {
+    private TtsClient buildClient(String secretId, String secretKey, String token, String region) {
         Credential credential = new Credential(secretId, secretKey);
+        if (token != null && !token.trim().isEmpty()) {
+            credential.setToken(token.trim());
+        }
         HttpProfile httpProfile = new HttpProfile();
         httpProfile.setEndpoint("tts.tencentcloudapi.com");
         ClientProfile clientProfile = new ClientProfile();
@@ -61,7 +90,7 @@ public class SpeechSynthesisService {
         return new TtsClient(credential, region, clientProfile);
     }
 
-    private TtsResult synthesizeShortText(TtsClient client, String text, String voice, String format,
+    private TtsResult synthesizeShortText(TtsClient client, String appId, String text, String voice, String format,
                                           Float speed, Float volume) {
         try {
             TextToVoiceRequest request = new TextToVoiceRequest();
@@ -83,11 +112,11 @@ public class SpeechSynthesisService {
             }
             return buildResult(audioBase64.trim(), voice, format);
         } catch (TencentCloudSDKException e) {
-            throw new IllegalStateException(e.getErrorCode() + ": " + e.getMessage(), e);
+            throw new IllegalStateException(formatTencentError(e), e);
         }
     }
 
-    private TtsResult synthesizeLongText(TtsClient client, String text, String voice, String format,
+    private TtsResult synthesizeLongText(TtsClient client, String appId, String text, String voice, String format,
                                          Float speed, Float volume) {
         try {
             CreateTtsTaskRequest request = new CreateTtsTaskRequest();
@@ -126,7 +155,7 @@ public class SpeechSynthesisService {
 
             return buildResult(Base64.getEncoder().encodeToString(audioBytes), voice, format);
         } catch (TencentCloudSDKException e) {
-            throw new IllegalStateException(e.getErrorCode() + ": " + e.getMessage(), e);
+            throw new IllegalStateException(formatTencentError(e), e);
         }
     }
 
@@ -148,13 +177,31 @@ public class SpeechSynthesisService {
                 }
                 TimeUnit.MILLISECONDS.sleep(1000L);
             } catch (TencentCloudSDKException e) {
-                throw new IllegalStateException(e.getErrorCode() + ": " + e.getMessage(), e);
+                throw new IllegalStateException(formatTencentError(e), e);
             } catch (InterruptedException e) {
                 Thread.currentThread().interrupt();
                 throw new IllegalStateException("语音任务等待被中断", e);
             }
         }
         throw new IllegalStateException("语音合成超时");
+    }
+
+    private String formatTencentError(TencentCloudSDKException e) {
+        String code = e.getErrorCode();
+        String message = e.getMessage();
+        if (code == null || code.trim().isEmpty()) {
+            return "腾讯云语音服务调用失败: " + message;
+        }
+        if ("AuthFailure.SignatureFailure".equals(code)) {
+            return "腾讯云签名校验失败，请检查 SecretId/SecretKey/Token 是否匹配，且是否存在空格、引号或临时密钥过期";
+        }
+        if ("AuthFailure.SecretIdNotFound".equals(code) || "AuthFailure.InvalidSecretId".equals(code)) {
+            return "腾讯云 SecretId 无效，请检查 TENCENT_TTS_SECRET_ID";
+        }
+        if ("AuthFailure.SecretKeyInvalid".equals(code)) {
+            return "腾讯云 SecretKey 无效，请检查 TENCENT_TTS_SECRET_KEY";
+        }
+        return code + ": " + message;
     }
 
     private TtsResult buildResult(String audioBase64, String voice, String format) {
@@ -239,12 +286,23 @@ public class SpeechSynthesisService {
         return "mp3";
     }
 
-    private String requireEnv(String name) {
-        String value = System.getenv(name);
-        if (value == null || value.trim().isEmpty()) {
+    private String normalizeRequired(String value, String name) {
+        String clean = normalizeOptional(value);
+        if (clean == null || clean.isEmpty()) {
             throw new IllegalStateException("未配置腾讯云语音服务，请设置 " + name);
         }
-        return value.trim();
+        return clean;
+    }
+
+    private String normalizeOptional(String value) {
+        if (value == null) {
+            return "";
+        }
+        String clean = value.trim();
+        if ((clean.startsWith("\"") && clean.endsWith("\"")) || (clean.startsWith("'") && clean.endsWith("'"))) {
+            clean = clean.substring(1, clean.length() - 1).trim();
+        }
+        return clean;
     }
 
     private float parseFloatOrDefault(String value, float defaultValue) {

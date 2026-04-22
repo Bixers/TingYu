@@ -662,11 +662,17 @@ Page({
   },
 
   toggleRain() {
-    this.onRainSwitchChange({
-      detail: {
-        value: !this.data.rainEnabled
-      }
-    })
+    if (this.data.rainEnabled) {
+      this.stopRain(true)
+      return
+    }
+    if (!this.data.immersiveMode) {
+      this.setData({ immersiveMode: true }, () => {
+        this.startRain()
+      })
+      return
+    }
+    this.startRain()
   },
 
   selectRainSource(e) {

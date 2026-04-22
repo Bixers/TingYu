@@ -115,6 +115,8 @@ Page({
     })
   },
 
+  noop() {},
+
   saveEdit() {
     const excerpt = this.data.editingExcerpt
     if (!excerpt || !excerpt.id) return

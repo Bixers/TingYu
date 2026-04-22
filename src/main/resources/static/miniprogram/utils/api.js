@@ -3,11 +3,17 @@ const app = getApp()
 function request(path, method = 'GET', data = null) {
   return new Promise((resolve, reject) => {
     const authToken = wx.getStorageSync('authToken')
+    const envId = app.globalData.cloudEnvId || 'prod-4gnit1gx2a365651'
+    const serviceName = app.globalData.serviceName
     const options = {
+      config: {
+        env: envId,
+        service: serviceName
+      },
       path,
       method,
       header: {
-        'X-WX-SERVICE': app.globalData.serviceName
+        'X-WX-SERVICE': serviceName
       },
       success: (res) => {
         if (res.statusCode === 200 && res.data && res.data.code === 200) {

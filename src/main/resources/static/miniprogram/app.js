@@ -3,10 +3,14 @@ App({
     if (!wx.cloud) {
       console.error('请使用 2.2.3 或以上的基础库以使用云能力')
     } else {
-      wx.cloud.init({
-        env: 'prod-4gnit1gx2a365651',
-        traceUser: true
-      })
+      try {
+        wx.cloud.init({
+          env: 'prod-4gnit1gx2a365651',
+          traceUser: false
+        })
+      } catch (err) {
+        console.warn('cloud init failed:', err)
+      }
     }
 
     const useTraditional = wx.getStorageSync('useTraditional')
@@ -37,6 +41,7 @@ App({
     isLoggedIn: false,
     authToken: '',
     authTokenExpireAt: 0,
+    cloudEnvId: 'prod-4gnit1gx2a365651',
     serviceName: 'springboot-84kb',
     dailyRainTemplateId: '',
     pendingTag: '',

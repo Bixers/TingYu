@@ -26,6 +26,18 @@ public class MetaService {
     @Value("${tencent.tts.secret-key:}")
     private String tencentTtsSecretKey;
 
+    @Value("${tencent.tts.region:ap-guangzhou}")
+    private String tencentTtsRegion;
+
+    @Value("${tencent.tts.voice:101001}")
+    private String tencentTtsVoice;
+
+    @Value("${tencent.tts.speed:0}")
+    private String tencentTtsSpeed;
+
+    @Value("${tencent.tts.volume:30}")
+    private String tencentTtsVolume;
+
     @Value("${rain.audio.sparse-url:}")
     private String rainSparseUrl;
 
@@ -47,6 +59,10 @@ public class MetaService {
         java.util.Map<String, Object> config = new java.util.HashMap<>();
         config.put("dailyRainTemplateId", dailyRainTemplateId == null ? "" : dailyRainTemplateId.trim());
         config.put("ttsAvailable", isTtsAvailable());
+        config.put("ttsRegion", normalizeValue(tencentTtsRegion));
+        config.put("ttsVoice", normalizeValue(tencentTtsVoice));
+        config.put("ttsSpeed", normalizeValue(tencentTtsSpeed));
+        config.put("ttsVolume", normalizeValue(tencentTtsVolume));
         config.put("rainSparseUrl", rainSparseUrl == null ? "" : rainSparseUrl.trim());
         config.put("rainHeavyUrl", rainHeavyUrl == null ? "" : rainHeavyUrl.trim());
         config.put("rainNightUrl", rainNightUrl == null ? "" : rainNightUrl.trim());
@@ -59,5 +75,9 @@ public class MetaService {
 
     private boolean notBlank(String value) {
         return value != null && !value.trim().isEmpty();
+    }
+
+    private String normalizeValue(String value) {
+        return value == null ? "" : value.trim();
     }
 }

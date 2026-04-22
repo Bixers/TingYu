@@ -257,6 +257,14 @@
   background: #5A6A5F;
 }
 
+.rain-btn {
+  background: linear-gradient(135deg, #9DA792 0%, #7E8F82 100%);
+}
+
+.rain-btn.active {
+  background: linear-gradient(135deg, #6F7F73 0%, #56645B 100%);
+}
+
 .voice-btn.disabled {
   background: #A7B0AA;
 }
@@ -285,6 +293,10 @@
 }
 
 .voice-btn .btn-label {
+  color: #FFFFFF;
+}
+
+.rain-btn .btn-label {
   color: #FFFFFF;
 }
 

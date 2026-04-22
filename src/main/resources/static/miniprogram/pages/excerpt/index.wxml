@@ -53,7 +53,7 @@
   </view>
 
   <view class="edit-overlay" wx:if="{{showEditModal}}" catchtap="closeEditModal">
-    <view class="edit-modal" catchtap="">
+    <view class="edit-modal" catchtap="noop">
       <text class="edit-title">编辑批注</text>
       <text class="edit-sentence">{{editingExcerpt.sentenceText}}</text>
       <textarea
