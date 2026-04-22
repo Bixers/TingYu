@@ -38,6 +38,37 @@ function buildRecommendReason(poem) {
   return ['推荐理由：清字缓句，适合在安静时慢慢读。', '推荐理由：轻声细读，更容易读出余味。'][seed % 2]
 }
 
+const LOCAL_FALLBACK_POEMS = [
+  {
+    id: 'local-rain-001',
+    title: '夜雨寄北',
+    author: '李商隐',
+    dynasty: '唐',
+    content: '君问归期未有期，巴山夜雨涨秋池。何当共剪西窗烛，却话巴山夜雨时。',
+    tags: '思乡,夜雨,离别'
+  },
+  {
+    id: 'local-rain-002',
+    title: '山居秋暝',
+    author: '王维',
+    dynasty: '唐',
+    content: '空山新雨后，天气晚来秋。明月松间照，清泉石上流。',
+    tags: '山水,清新,秋夜'
+  },
+  {
+    id: 'local-rain-003',
+    title: '如梦令·昨夜雨疏风骤',
+    author: '李清照',
+    dynasty: '宋',
+    content: '昨夜雨疏风骤，浓睡不消残酒。试问卷帘人，却道海棠依旧。',
+    tags: '宋词,春雨,闺情'
+  }
+]
+
+function getLocalFallbackPoem(seed) {
+  const index = Math.abs(Number(seed || 0)) % LOCAL_FALLBACK_POEMS.length
+  return LOCAL_FALLBACK_POEMS[index]
+}
 Page({
   data: {
     currentPoem: null,
@@ -159,6 +190,10 @@ Page({
       console.error('加载首页诗词失败:', err)
       return api.getRandomPoem(this._recentPoemIds || []).then((poem) => {
         this.updateDisplayedPoem(poem, '随机诗词')
+      }).catch(() => {
+        const fallbackPoem = getLocalFallbackPoem(Date.now())
+        this.updateDisplayedPoem(fallbackPoem, '本地诗词')
+        wx.showToast({ title: '已切换本地诗页', icon: 'none' })
       })
     }).catch((err) => {
       console.error('加载失败:', err)
@@ -176,7 +211,9 @@ Page({
       this.updateDisplayedPoem(poem, '随机诗词')
     }).catch((err) => {
       console.error('加载随机诗词失败:', err)
-      wx.showToast({ title: '加载失败', icon: 'none' })
+      const fallbackPoem = getLocalFallbackPoem(Date.now() + 1)
+      this.updateDisplayedPoem(fallbackPoem, '本地诗词')
+      wx.showToast({ title: '已切换本地诗页', icon: 'none' })
     }).finally(() => {
       this.setData({ loading: false })
     })
@@ -184,9 +221,11 @@ Page({
 
   goToDetail() {
     const currentPoem = this.data.currentPoem
-    if (currentPoem) {
+    if (currentPoem && currentPoem.id && currentPoem.id.indexOf('local-') !== 0) {
       wx.navigateTo({ url: `/pages/detail/index?id=${currentPoem.id}` })
+      return
     }
+    wx.showToast({ title: '本地诗页暂不支持详情', icon: 'none' })
   },
 
   goToDiscover() {
@@ -195,18 +234,21 @@ Page({
 
   goToShare() {
     const currentPoem = this.data.currentPoem
-    if (currentPoem) {
+    if (currentPoem && currentPoem.id && currentPoem.id.indexOf('local-') !== 0) {
       wx.navigateTo({ url: `/pages/share/index?id=${currentPoem.id}` })
+      return
     }
+    wx.showToast({ title: '本地诗页暂不支持分享', icon: 'none' })
   },
 
   goToPoemCalendar() {
     const currentPoem = this.data.currentPoem
-    if (currentPoem) {
+    if (currentPoem && currentPoem.id && currentPoem.id.indexOf('local-') !== 0) {
       wx.navigateTo({ url: `/pages/share/index?id=${currentPoem.id}&mode=calendar` })
+      return
     }
+    wx.showToast({ title: '本地诗页暂不支持诗历', icon: 'none' })
   },
-
   onShareAppMessage() {
     const currentPoem = this.data.currentPoem
     return currentPoem ? {

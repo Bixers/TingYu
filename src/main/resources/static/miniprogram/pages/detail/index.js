@@ -35,9 +35,6 @@ Page({
     excerptNote: '',
     excerptContext: null,
     excerptSaving: false,
-    reading: false,
-    readingLoading: false,
-    ttsAvailable: false,
     rainSources: RAIN_SOURCES,
     rainSourceIndex: 0,
     rainEnabled: false,
@@ -63,12 +60,10 @@ Page({
   },
 
   onHide() {
-    this.stopReading(false)
     this.stopRain(false)
   },
 
   onUnload() {
-    this.stopReading(false)
     this.stopRain(false)
   },
 
@@ -204,13 +199,11 @@ Page({
         ).trim() : item.src
       }))
       this.setData({
-        rainSources: rainSources,
-        ttsAvailable: !!(config && config.ttsAvailable)
+        rainSources: rainSources
       })
     }).catch(() => {
       this.setData({
-        rainSources: RAIN_SOURCES,
-        ttsAvailable: false
+        rainSources: RAIN_SOURCES
       })
     })
   },
@@ -389,161 +382,6 @@ Page({
         isFavorite: favoriteIndexes.indexOf(index) !== -1
       }
     })
-  },
-
-  buildReadingText() {
-    const poem = this._rawPoem || this.data.poem
-    if (!poem) return ''
-    const lines = api.parseSentences(poem.content)
-    const pieces = [poem.title || '', poem.author || '', lines.join('')]
-    return pieces.filter(function(part) {
-      return part && String(part).trim()
-    }).join('。')
-  },
-
-  getReadingVoice() {
-    return 'zh-CN-XiaoxiaoNeural'
-  },
-
-  getReadingOutputFormat() {
-    return 'audio-24khz-96kbitrate-mono-mp3'
-  },
-
-  ensureFilePath(fileExtension) {
-    const suffix = fileExtension || 'mp3'
-    return `${wx.env.USER_DATA_PATH}/tingyu_tts_${Date.now()}_${Math.random().toString(36).substring(2, 8)}.${suffix}`
-  },
-
-  writeAudioFile(audioBase64, fileExtension) {
-    return new Promise((resolve, reject) => {
-      try {
-        const filePath = this.ensureFilePath(fileExtension)
-        wx.getFileSystemManager().writeFile({
-          filePath: filePath,
-          data: audioBase64,
-          encoding: 'base64',
-          success: () => {
-            this._readingTempFilePath = filePath
-            resolve(filePath)
-          },
-          fail: (err) => reject(err)
-        })
-      } catch (e) {
-        reject(e)
-      }
-    })
-  },
-
-  cleanupReadingTempFile() {
-    if (!this._readingTempFilePath) return
-    const filePath = this._readingTempFilePath
-    this._readingTempFilePath = ''
-    try {
-      wx.getFileSystemManager().unlink({
-        filePath: filePath,
-        fail: () => {}
-      })
-    } catch (e) {}
-  },
-
-  startReading() {
-    const poem = this.data.poem
-    if (!poem || !poem.id) return
-    if (!getApp().globalData.isLoggedIn) {
-      wx.showToast({ title: '请先登录', icon: 'none' })
-      return
-    }
-    if (this.data.readingLoading) return
-    if (!this.data.ttsAvailable) {
-      wx.showToast({ title: '朗读暂不可用', icon: 'none' })
-      return
-    }
-
-    const text = this.buildReadingText()
-    if (!text) {
-      wx.showToast({ title: '暂无可朗读内容', icon: 'none' })
-      return
-    }
-
-    this.setData({ readingLoading: true })
-    api.synthesizeSpeech({
-      text: text,
-      voice: this.getReadingVoice(),
-      outputFormat: this.getReadingOutputFormat()
-    }).then((result) => {
-      if (!result || !result.audioBase64) {
-        throw new Error('朗读生成失败')
-      }
-      return this.writeAudioFile(result.audioBase64, result.fileExtension || 'mp3').then((filePath) => {
-        this.playReadingAudio(filePath)
-      })
-    }).catch((err) => {
-      console.error('朗读生成失败', err)
-      this.setData({ readingLoading: false, reading: false })
-      wx.showToast({ title: (err && err.message) || '朗读生成失败', icon: 'none' })
-    })
-  },
-
-  playReadingAudio(audioSrc) {
-    if (!audioSrc) {
-      this.setData({ readingLoading: false })
-      return
-    }
-
-    if (this.audioContext) {
-      try {
-        this.audioContext.destroy()
-      } catch (e) {}
-      this.audioContext = null
-    }
-
-    const audio = wx.createInnerAudioContext()
-    audio.autoplay = false
-    audio.src = audioSrc
-    audio.onPlay(() => {
-      this.setData({ reading: true, readingLoading: false })
-    })
-    audio.onEnded(() => {
-      this.setData({ reading: false, readingLoading: false })
-      this.cleanupReadingTempFile()
-    })
-    audio.onStop(() => {
-      this.setData({ reading: false, readingLoading: false })
-      this.cleanupReadingTempFile()
-    })
-    audio.onError((err) => {
-      console.error('朗读播放失败', err)
-      this.setData({ reading: false, readingLoading: false })
-      this.cleanupReadingTempFile()
-      wx.showToast({ title: '朗读播放失败', icon: 'none' })
-    })
-    this.audioContext = audio
-    audio.play()
-  },
-
-  stopReading(showToast) {
-    if (this.audioContext) {
-      try {
-        this.audioContext.stop()
-      } catch (e) {}
-      try {
-        this.audioContext.destroy()
-      } catch (e) {}
-      this.audioContext = null
-    }
-    this.cleanupReadingTempFile()
-    this.setData({ reading: false, readingLoading: false })
-    if (showToast) {
-      wx.showToast({ title: '朗读已停止', icon: 'none' })
-    }
-  },
-
-  toggleReading() {
-    if (this.data.reading) {
-      this.stopReading(true)
-      return
-    }
-    this.startReading()
   },
 
   getCurrentRainSource() {

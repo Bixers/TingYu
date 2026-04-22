@@ -23,14 +23,3 @@ wechat:
   subscribe:
     template-id: ${WECHAT_SUBSCRIBE_TEMPLATE_ID:pIleT1Y2QDm7fuGaHrRZ9X6GnP2ZCV0lbZoBVQJNiQo}
     page: ${WECHAT_SUBSCRIBE_PAGE:pages/detail/index}
-
-tencent:
-  tts:
-    app-id: ${TENCENT_TTS_APP_ID:}
-    secret-id: ${TENCENT_TTS_SECRET_ID:}
-    secret-key: ${TENCENT_TTS_SECRET_KEY:}
-    secret-token: ${TENCENT_TTS_SECRET_TOKEN:}
-    region: ${TENCENT_TTS_REGION:ap-guangzhou}
-    voice: ${TENCENT_TTS_VOICE:101001}
-    speed: ${TENCENT_TTS_SPEED:0}
-    volume: ${TENCENT_TTS_VOLUME:30}

@@ -7,8 +7,11 @@
     <view class="chinese-toggle" catchtap="toggleChinese" wx:if="{{!immersiveMode}}">
       <text class="toggle-text">{{useTraditional ? '繁' : '简'}}</text>
     </view>
+    <text class="poem-eyebrow">{{immersiveMode ? '沉浸阅读' : '今日诗页'}}</text>
     <text class="poem-title" bindlongpress="onLongPressTitle">{{poem.title}}</text>
     <text class="poem-meta" bindlongpress="onLongPressAuthor">{{poem.dynasty}} · {{poem.author}}</text>
+    <view class="poem-divider"></view>
+    <text class="poem-tip" wx:if="{{!immersiveMode}}">长按可复制、摘录，点正文进入沉浸阅读</text>
     <view class="poem-body">
       <block wx:for="{{contentLines}}" wx:for-item="item" wx:for-index="index" wx:key="index">
         <text class="poem-line {{item.isFavorite ? 'sentence-favorited' : ''}}" bindlongpress="onLongPressLine" data-line="{{item.text}}" data-index="{{index}}">{{item.text}}</text>
@@ -17,6 +20,7 @@
   </view>
 
   <view class="author-section" wx:if="{{authorInfo && authorInfo.description && !immersiveMode}}" catchtap="toggleAuthorBio">
+    <text class="section-kicker">作者简介</text>
     <view class="author-header">
       <text class="author-name">{{authorInfo.name}}</text>
       <text class="author-arrow">{{showAuthorBio ? '收起' : '展开'}}</text>
@@ -35,6 +39,7 @@
   </view>
 
   <view class="tab-section" wx:if="{{poem && !immersiveMode && (poem.annotation || poem.appreciation || poem.translation)}}">
+    <text class="section-kicker">内容解读</text>
     <view class="tab-bar">
       <view class="tab-item {{activeTab === 'annotation' ? 'active' : ''}}" bindtap="switchTab" data-tab="annotation" wx:if="{{poem.annotation}}">
         <text>注释</text>
@@ -67,21 +72,23 @@
   </view>
 
   <view class="bottom-bar" wx:if="{{poem && !immersiveMode}}">
-    <view class="bottom-btn voice-btn {{reading ? 'active' : ''}} {{!ttsAvailable ? 'disabled' : ''}}" bindtap="toggleReading">
-      <text class="btn-label">{{reading ? '停止朗读' : (readingLoading ? '生成中...' : (ttsAvailable ? '语音朗读' : '朗读暂不可用'))}}</text>
-    </view>
     <view class="bottom-btn rain-btn {{rainEnabled ? 'active' : ''}}" bindtap="toggleRain">
-      <text class="btn-label">{{rainEnabled ? (rainPlaying ? '收起雨声' : '雨声开启') : '檐下雨'}}</text>
+      <text class="btn-main">{{rainEnabled ? (rainPlaying ? '收起雨声' : '雨声开启') : '檐下雨'}}</text>
+      <text class="btn-sub">{{rainEnabled ? '停风听雨' : '沉浸阅读'}}</text>
     </view>
     <view class="bottom-btn favorite-btn {{isFavoriteFull ? 'active' : ''}}" bindtap="toggleFullFavorite">
-      <text class="btn-label">{{isFavoriteFull ? '已收藏全文' : '收藏全文'}}</text>
+      <text class="btn-main">{{isFavoriteFull ? '已收藏' : '收藏全文'}}</text>
+      <text class="btn-sub">{{isFavoriteFull ? '已入书签' : '收入书签'}}</text>
     </view>
-    <view class="bottom-btn" bindtap="goToShare">
-      <text class="btn-label">生成卡片</text>
+    <view class="bottom-btn generate-btn" bindtap="goToShare">
+      <text class="btn-main">生成卡片</text>
+      <text class="btn-sub">今日诗历</text>
     </view>
-    <button class="bottom-btn share-btn" open-type="share">
-      <text class="btn-label">分享好友</text>
-    </button>
+    <view class="bottom-btn share-btn">
+      <text class="btn-main">分享好友</text>
+      <text class="btn-sub">传递一首</text>
+      <button class="share-trigger" open-type="share"></button>
+    </view>
   </view>
 
   <view class="rain-panel" wx:if="{{poem && immersiveMode}}">
@@ -188,3 +195,4 @@
     </view>
   </view>
 </view>
+

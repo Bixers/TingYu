@@ -57,11 +57,6 @@
             <artifactId>pinyin4j</artifactId>
             <version>2.5.1</version>
         </dependency>
-        <dependency>
-            <groupId>com.tencentcloudapi</groupId>
-            <artifactId>tencentcloud-sdk-java</artifactId>
-            <version>3.1.1000</version>
-        </dependency>
     </dependencies>
 
     <build>

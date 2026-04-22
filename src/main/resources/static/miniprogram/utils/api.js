@@ -2,6 +2,11 @@ const app = getApp()
 
 function request(path, method = 'GET', data = null) {
   return new Promise((resolve, reject) => {
+    const cloudDisabled = wx.getStorageSync('cloudRequestDisabled')
+    if (cloudDisabled) {
+      reject(new Error('cloud request disabled'))
+      return
+    }
     const authToken = wx.getStorageSync('authToken')
     const envId = app.globalData.cloudEnvId || 'prod-4gnit1gx2a365651'
     const serviceName = app.globalData.serviceName
@@ -20,6 +25,10 @@ function request(path, method = 'GET', data = null) {
         }
       },
       fail: (error) => {
+        const message = String((error && (error.errMsg || error.message)) || error || '')
+        if (/Failed to fetch|timeout|envId must be provided|callContainer/i.test(message)) {
+          wx.setStorageSync('cloudRequestDisabled', true)
+        }
         reject(error)
       }
     }
@@ -217,9 +226,6 @@ function replyBoatMessage(id, data) {
   return request(`/api/boat/messages/${encodeURIComponent(id)}/reply`, 'POST', data)
 }
 
-function synthesizeSpeech(data) {
-  return request('/api/tools/tts', 'POST', data)
-}
 
 function getRhymeInfo(text) {
   return request('/api/tools/rhyme', 'POST', { text: text })
@@ -328,7 +334,6 @@ module.exports = {
   receiveBoatMessage,
   collectBoatMessage,
   replyBoatMessage,
-  synthesizeSpeech,
   getRhymeInfo,
   parseContent,
   parseSentences,
