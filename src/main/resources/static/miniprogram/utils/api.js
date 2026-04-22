@@ -6,10 +6,6 @@ function request(path, method = 'GET', data = null) {
     const envId = app.globalData.cloudEnvId || 'prod-4gnit1gx2a365651'
     const serviceName = app.globalData.serviceName
     const options = {
-      config: {
-        env: envId,
-        service: serviceName
-      },
       path,
       method,
       header: {
@@ -34,6 +30,9 @@ function request(path, method = 'GET', data = null) {
     if (authToken) {
       options.header.Token = authToken
       options.header.Authorization = `Bearer ${authToken}`
+    }
+    options.config = {
+      env: envId
     }
     wx.cloud.callContainer(options)
   })

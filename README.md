@@ -140,6 +140,11 @@ mvn spring-boot:run
 
 ## 更新记录
 
+### v0.1.6 (2026-04-22)
+- 恢复 `wx.cloud.init` 的 `envId`，避免 `cloud.callContainer` 因缺少环境参数直接失败
+- `callContainer` 重新固定传入 `config.env`，确保首页诗词等云托管接口可正常拉起
+- 保留 `traceUser: false`，降低初始化阶段的额外请求干扰
+
 ### v0.1.5 (2026-04-22)
 - 小程序启动时关闭 `traceUser`，避免云初始化阶段拉起额外请求导致启动失败
 - API 请求显式传入 `config.env` / `config.service`，提升云托管调用稳定性
