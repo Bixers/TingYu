@@ -36,6 +36,17 @@ App({
     }
   },
 
+  onHide() {
+    const stopActiveAudio = this.globalData.stopActiveAudio
+    if (typeof stopActiveAudio === 'function') {
+      try {
+        stopActiveAudio()
+      } catch (err) {
+        console.warn('stop active audio failed:', err)
+      }
+    }
+  },
+
   globalData: {
     userInfo: null,
     isLoggedIn: false,
@@ -44,6 +55,7 @@ App({
     cloudEnvId: 'prod-4gnit1gx2a365651',
     serviceName: 'springboot-84kb',
     dailyRainTemplateId: '',
+    stopActiveAudio: null,
     pendingTag: '',
     useTraditional: false
   }

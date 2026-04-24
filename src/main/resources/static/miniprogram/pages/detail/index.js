@@ -46,6 +46,7 @@ Page({
   onLoad(options) {
     this.setData({ useTraditional: getApp().globalData.useTraditional })
     this.loadRainAudioSources()
+    this.registerRainStopHandler()
     if (options.id) {
       this.loadPoemDetail(options.id)
     }
@@ -60,11 +61,26 @@ Page({
   },
 
   onHide() {
-    this.stopRain(false)
+    this.stopRain(false, { force: true })
   },
 
   onUnload() {
-    this.stopRain(false)
+    this.unregisterRainStopHandler()
+    this.stopRain(false, { force: true })
+  },
+
+  registerRainStopHandler() {
+    const app = getApp()
+    app.globalData.stopActiveAudio = () => {
+      this.stopRain(false, { force: true })
+    }
+  },
+
+  unregisterRainStopHandler() {
+    const app = getApp()
+    if (app.globalData.stopActiveAudio) {
+      app.globalData.stopActiveAudio = null
+    }
   },
 
   toggleChinese() {
@@ -468,20 +484,30 @@ Page({
     audio.play()
   },
 
-  stopRain(showToast) {
+  stopRain(showToast, options) {
+    const force = !!(options && options.force)
     this.clearRainFadeTimer()
     const audio = this.rainAudioContext
     this.rainAudioContext = null
 
     if (audio) {
-      this.fadeRainVolume(audio, audio.volume || 0, 0, 220, () => {
+      if (force) {
         try {
           audio.stop()
         } catch (e) {}
         try {
           audio.destroy()
         } catch (e) {}
-      })
+      } else {
+        this.fadeRainVolume(audio, audio.volume || 0, 0, 220, () => {
+          try {
+            audio.stop()
+          } catch (e) {}
+          try {
+            audio.destroy()
+          } catch (e) {}
+        })
+      }
     }
 
     this.setData({ rainPlaying: false, rainLoading: false, rainEnabled: false })

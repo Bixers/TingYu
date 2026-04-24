@@ -178,55 +178,6 @@ function getUsageSummary() {
   return request('/api/usage/summary')
 }
 
-function getBoatMessages(limit) {
-  const query = buildQuery({
-    limit: limit || 20
-  })
-  return request(`/api/boat/messages${query}`)
-}
-
-function getBoatMyMessages(limit) {
-  const query = buildQuery({
-    limit: limit || 20
-  })
-  return request(`/api/boat/messages/mine${query}`)
-}
-
-function getBoatCollectedMessages(limit) {
-  const query = buildQuery({
-    limit: limit || 20
-  })
-  return request(`/api/boat/messages/collected${query}`)
-}
-
-function getBoatRecentReceivedMessages(limit) {
-  const query = buildQuery({
-    limit: limit || 3
-  })
-  return request(`/api/boat/messages/recent-received${query}`)
-}
-
-function getBoatThread(id) {
-  return request(`/api/boat/messages/${encodeURIComponent(id)}`)
-}
-
-function publishBoatMessage(data) {
-  return request('/api/boat/messages', 'POST', data)
-}
-
-function receiveBoatMessage() {
-  return request('/api/boat/receive', 'POST', {})
-}
-
-function collectBoatMessage(id) {
-  return request(`/api/boat/messages/${encodeURIComponent(id)}/collect`, 'POST', {})
-}
-
-function replyBoatMessage(id, data) {
-  return request(`/api/boat/messages/${encodeURIComponent(id)}/reply`, 'POST', data)
-}
-
-
 function getRhymeInfo(text) {
   return request('/api/tools/rhyme', 'POST', { text: text })
 }
@@ -325,15 +276,6 @@ module.exports = {
   updateExcerpt,
   deleteExcerpt,
   getUsageSummary,
-  getBoatMessages,
-  getBoatMyMessages,
-  getBoatCollectedMessages,
-  getBoatRecentReceivedMessages,
-  getBoatThread,
-  publishBoatMessage,
-  receiveBoatMessage,
-  collectBoatMessage,
-  replyBoatMessage,
   getRhymeInfo,
   parseContent,
   parseSentences,

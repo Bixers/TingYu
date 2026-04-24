@@ -6,7 +6,6 @@
     "pages/share/index",
     "pages/favorite/index",
     "pages/excerpt/index",
-    "pages/boat/index",
     "pages/profile/index"
   ],
   "window": {

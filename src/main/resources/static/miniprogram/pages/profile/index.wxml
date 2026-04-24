@@ -19,10 +19,6 @@
   </view>
 
   <view class="menu-section card fade-in" wx:if="{{isLoggedIn}}">
-    <view class="menu-item" bindtap="goToBoat">
-      <text class="menu-text">诗舟</text>
-      <text class="menu-arrow">></text>
-    </view>
     <view class="menu-item" bindtap="goToFavorites">
       <text class="menu-text">收藏</text>
       <text class="menu-arrow">></text>
@@ -33,49 +29,49 @@
     </view>
   </view>
 
-  <view class="boat-card card fade-in" wx:if="{{isLoggedIn}}">
+  <view class="push-card card fade-in" wx:if="{{isLoggedIn}}">
     <view class="row-between">
-      <text class="boat-title">每日雨丝</text>
+      <text class="push-title">每日雨丝</text>
       <switch checked="{{rainPushEnabled}}" bindchange="onRainPushChange" color="#55655C"></switch>
     </view>
-    <text class="boat-copy">开启后将记录你的订阅偏好，后续会按日发送一条诗意提醒。</text>
-    <view class="compose-actions">
-      <view class="btn-secondary compose-btn" bindtap="subscribeDailyRain">
+    <text class="push-copy">开启后将记录你的订阅偏好，后续会按日发送一条诗意提醒。</text>
+    <view class="push-actions">
+      <view class="btn-secondary push-btn" bindtap="subscribeDailyRain">
         <text>订阅今日雨丝</text>
       </view>
     </view>
   </view>
 
-  <view class="boat-card card fade-in" wx:if="{{isLoggedIn && boatSummary}}">
-    <text class="boat-title">诗舟里程</text>
-    <text class="boat-copy">你已伴诗舟行过 {{boatSummary.daysElapsed || 0}} 日，共读 {{boatSummary.totalPoems || 0}} 首诗词。</text>
-    <view class="boat-stats">
-      <view class="boat-stat">
-        <text class="boat-stat-value">{{boatSummary.totalViews || 0}}</text>
-        <text class="boat-stat-label">浏览次数</text>
+  <view class="summary-card card fade-in" wx:if="{{isLoggedIn && usageSummary}}">
+    <text class="summary-title">阅读足迹</text>
+    <text class="summary-copy">你已在阅读之路上行过 {{usageSummary.daysElapsed || 0}} 日，共读 {{usageSummary.totalPoems || 0}} 首诗词。</text>
+    <view class="summary-stats">
+      <view class="summary-stat">
+        <text class="summary-stat-value">{{usageSummary.totalViews || 0}}</text>
+        <text class="summary-stat-label">浏览次数</text>
       </view>
-      <view class="boat-stat">
-        <text class="boat-stat-value">{{boatSummary.series[6] ? boatSummary.series[6].poems : 0}}</text>
-        <text class="boat-stat-label">今日读诗</text>
+      <view class="summary-stat">
+        <text class="summary-stat-value">{{usageSummary.series[6] ? usageSummary.series[6].poems : 0}}</text>
+        <text class="summary-stat-label">今日读诗</text>
       </view>
-      <view class="boat-stat">
-        <text class="boat-stat-value">{{boatSummary.totalSearches || 0}}</text>
-        <text class="boat-stat-label">搜索次数</text>
+      <view class="summary-stat">
+        <text class="summary-stat-value">{{usageSummary.totalSearches || 0}}</text>
+        <text class="summary-stat-label">搜索次数</text>
       </view>
     </view>
 
-    <view class="boat-chart">
-      <view class="boat-chart-header">
-        <text class="boat-chart-title">最近七日阅读轨迹</text>
-        <text class="boat-chart-hint">记录停泊过的每一次阅读</text>
+    <view class="summary-chart">
+      <view class="summary-chart-header">
+        <text class="summary-chart-title">最近七日阅读轨迹</text>
+        <text class="summary-chart-hint">记录停泊过的每一次阅读</text>
       </view>
-      <view class="boat-chart-bars">
-        <view class="boat-chart-item" wx:for="{{boatSummary.series}}" wx:key="dayKey">
-          <view class="boat-chart-track">
-            <view class="boat-chart-fill" style="height: {{item.viewsBarHeight}}%;"></view>
+      <view class="summary-chart-bars">
+        <view class="summary-chart-item" wx:for="{{usageSummary.series}}" wx:key="dayKey">
+          <view class="summary-chart-track">
+            <view class="summary-chart-fill" style="height: {{item.viewsBarHeight}}%;"></view>
           </view>
-          <text class="boat-chart-value">{{item.views}}</text>
-          <text class="boat-chart-label">{{item.shortDayLabel}}</text>
+          <text class="summary-chart-value">{{item.views}}</text>
+          <text class="summary-chart-label">{{item.shortDayLabel}}</text>
         </view>
       </view>
     </view>
