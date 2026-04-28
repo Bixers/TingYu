@@ -1,5 +1,6 @@
 package com.tencent.wxcloudrun.service;
 
+import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.tencent.wxcloudrun.dao.UserMapper;
 import com.tencent.wxcloudrun.model.Poem;
@@ -15,8 +16,6 @@ import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
 
-import java.time.LocalDateTime;
-import java.time.format.DateTimeFormatter;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -25,6 +24,7 @@ import java.util.Map;
 public class DailyRainPushService {
 
     private static final ObjectMapper OBJECT_MAPPER = new ObjectMapper();
+    private static final TypeReference<Map<String, Object>> MAP_TYPE = new TypeReference<Map<String, Object>>() {};
 
     private final RestTemplate restTemplate = new RestTemplate();
 
@@ -76,7 +76,7 @@ public class DailyRainPushService {
     }
 
     public void sendOne(User user, Poem poem) {
-        if (user == null || user.getOpenId() == null || user.getOpenId().trim().isEmpty()) {
+        if (user == null || !notBlank(user.getOpenId()) || poem == null) {
             return;
         }
         if (!isConfigured()) {
@@ -84,11 +84,12 @@ public class DailyRainPushService {
         }
 
         String token = getAccessToken();
-        if (token == null || token.isEmpty()) {
+        if (!notBlank(token)) {
             return;
         }
 
         String url = "https://api.weixin.qq.com/cgi-bin/message/subscribe/send?access_token=" + token;
+
         Map<String, Object> payload = new HashMap<>();
         payload.put("touser", user.getOpenId());
         payload.put("template_id", templateId);
@@ -104,10 +105,12 @@ public class DailyRainPushService {
         HttpHeaders headers = new HttpHeaders();
         headers.setContentType(MediaType.APPLICATION_JSON);
         HttpEntity<Map<String, Object>> entity = new HttpEntity<>(payload, headers);
-        ResponseEntity<Map> response = restTemplate.exchange(url, HttpMethod.POST, entity, Map.class);
-        Object errcode = response.getBody() == null ? null : response.getBody().get("errcode");
+
+        ResponseEntity<String> response = restTemplate.exchange(url, HttpMethod.POST, entity, String.class);
+        Map<String, Object> body = parseJsonObject(response.getBody(), "subscribe send");
+        Object errcode = body.get("errcode");
         if (errcode != null && Integer.parseInt(String.valueOf(errcode)) != 0) {
-            throw new IllegalStateException("微信返回错误: " + response.getBody());
+            throw new IllegalStateException("微信返回错误: " + body);
         }
     }
 
@@ -120,15 +123,23 @@ public class DailyRainPushService {
         String url = "https://api.weixin.qq.com/cgi-bin/token?grant_type=client_credential"
                 + "&appid=" + appId
                 + "&secret=" + appSecret;
-        Map response = restTemplate.getForObject(url, Map.class);
-        if (response == null) {
+        String responseText = restTemplate.getForObject(url, String.class);
+        Map<String, Object> response = parseJsonObject(responseText, "access token");
+        if (response.isEmpty()) {
             return null;
         }
+
         Object token = response.get("access_token");
         Object expiresIn = response.get("expires_in");
         if (token == null || expiresIn == null) {
+            Object errcode = response.get("errcode");
+            Object errmsg = response.get("errmsg");
+            if (errcode != null || errmsg != null) {
+                throw new IllegalStateException("获取 access_token 失败: " + response);
+            }
             return null;
         }
+
         accessToken = String.valueOf(token);
         accessTokenExpireAt = now + Long.parseLong(String.valueOf(expiresIn)) * 1000L;
         return accessToken;
@@ -184,7 +195,9 @@ public class DailyRainPushService {
     }
 
     private String safeValue(String value, int limit) {
-        if (value == null) return "";
+        if (value == null) {
+            return "";
+        }
         String clean = value.trim();
         if (clean.length() > limit) {
             return clean.substring(0, limit);
@@ -196,5 +209,16 @@ public class DailyRainPushService {
         Map<String, String> item = new HashMap<>();
         item.put("value", value == null ? "" : value);
         return item;
+    }
+
+    private Map<String, Object> parseJsonObject(String responseText, String scene) {
+        if (!notBlank(responseText)) {
+            return new HashMap<>();
+        }
+        try {
+            return OBJECT_MAPPER.readValue(responseText, MAP_TYPE);
+        } catch (Exception e) {
+            throw new IllegalStateException("微信 " + scene + " 响应不是合法 JSON: " + responseText, e);
+        }
     }
 }
